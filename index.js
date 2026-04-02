@@ -43,6 +43,8 @@ const slidesEl = document.getElementById("slides");
 const appEl = document.querySelector(".app");
 const currentTimeEl = document.getElementById("currentTime");
 const currentDateEl = document.getElementById("currentDate");
+const bankCurrentTimeEl = document.getElementById("bankCurrentTime");
+const bankCurrentDateEl = document.getElementById("bankCurrentDate");
 const timeDialEl = document.getElementById("timeDial");
 const timeDialMarkerEl = document.getElementById("timeDialMarker");
 const bankTimeDialEl = document.getElementById("bankTimeDial");
@@ -206,6 +208,8 @@ function updateText(index, now) {
   const slide = slides[index];
   currentTimeEl.textContent = formatClock(now);
   currentDateEl.textContent = formatDate(now);
+  if (bankCurrentTimeEl) bankCurrentTimeEl.textContent = formatClock(now);
+  if (bankCurrentDateEl) bankCurrentDateEl.textContent = formatDate(now);
   slideTitleEl.textContent = slide.title;
   slideMetaEl.textContent = slide.meta;
   timeDialMarkerEl.textContent = formatDialClock(now);

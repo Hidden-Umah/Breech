@@ -697,6 +697,24 @@
         color: rgba(255, 255, 255, 0.72);
       }
 
+      .bank-drawer__box--clock {
+        place-items: start;
+        padding: 14px 16px;
+      }
+
+      .bank-drawer__box--clock .clock {
+        width: 100%;
+      }
+
+      .bank-drawer__box--clock .clock__time {
+        font-size: clamp(1.3rem, 3vw, 2.4rem);
+        min-width: 0;
+      }
+
+      .bank-drawer__box--clock .clock__date {
+        font-size: clamp(0.78rem, 1.5vw, 0.95rem);
+      }
+
       .bank-drawer__overlay {
         display: none;
       }
@@ -1088,7 +1106,12 @@
       <aside class="bank-drawer" id="bankDrawer" aria-hidden="true">
         <div class="bank-drawer__panel">
           <div class="bank-drawer__top">
-            <div class="bank-drawer__box">1</div>
+            <div class="bank-drawer__box bank-drawer__box--clock">
+              <div class="clock">
+                <div class="clock__time" id="bankCurrentTime">--:--</div>
+                <div class="clock__date" id="bankCurrentDate">Loading date...</div>
+              </div>
+            </div>
             <div class="bank-drawer__box">2</div>
             <div class="bank-drawer__box">3</div>
             <button class="bank-drawer__close" id="bankClose" type="button" aria-label="Close bank page">×</button>
