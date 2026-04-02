@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Time Slider</title>
+    <style>
+      :root {
+        --bg: #080808;
+        --panel: rgba(12, 12, 14, 0.58);
+        --panel-border: rgba(255, 255, 255, 0.12);
+        --text: #f5f2eb;
+        --muted: rgba(245, 242, 235, 0.7);
+        --accent: #f3b56a;
+        --accent-2: #c98bff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg);
+      }
+
+      body {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        color: var(--text);
+        overflow: hidden;
+      }
+
+      .app {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(243, 181, 106, 0.12), transparent 28%),
+          radial-gradient(circle at 80% 80%, rgba(201, 139, 255, 0.12), transparent 24%),
+          linear-gradient(180deg, #111 0%, #040404 100%);
+      }
+
+      .slides {
+        position: absolute;
+        inset: 0;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        opacity: 0;
+        transform: translateX(0);
+        transition:
+          transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
+          opacity 700ms cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: transform, opacity;
+      }
+
+      .slide::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(4, 4, 4, 0.38) 0%, rgba(4, 4, 4, 0.1) 20%, rgba(4, 4, 4, 0.35) 100%),
+          radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.08), transparent 42%);
+      }
+
+      .slide.is-active {
+        opacity: 1;
+        transform: translateX(0);
+        z-index: 2;
+      }
+
+      .slide.is-enter-left {
+        opacity: 0;
+        transform: translateX(-100%);
+        z-index: 1;
+      }
+
+      .slide.is-enter-right {
+        opacity: 0;
+        transform: translateX(100%);
+        z-index: 1;
+      }
+
+      .slide.is-exit-left {
+        opacity: 0;
+        transform: translateX(-100%);
+        z-index: 1;
+      }
+
+      .slide.is-exit-right {
+        opacity: 0;
+        transform: translateX(100%);
+        z-index: 1;
+      }
+
+      .hud {
+        position: relative;
+        z-index: 3;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: clamp(12px, 2vw, 18px);
+        padding: clamp(14px, 2.2vw, 28px);
+      }
+
+      .tasks-rail {
+        display: flex;
+        flex-direction: row;
+        gap: 14px;
+        width: 100%;
+        min-height: 0;
+        flex: 1 1 auto;
+        align-items: stretch;
+        z-index: 3;
+        margin-bottom: 18px;
+      }
+
+      .task-card {
+        flex: 1 1 0;
+        min-height: 0;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+        display: grid;
+        place-items: center;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.78);
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
+        align-items: start;
+        gap: 0;
+        padding: 0;
+        background: var(--panel);
+        backdrop-filter: blur(18px);
+        border-radius: 22px;
+        max-width: none;
+        width: 100%;
+        box-shadow: 0 22px 50px rgba(0, 0, 0, 0.32);
+        overflow: hidden;
+      }
+
+      .topbar__pane {
+        display: flex;
+        align-items: flex-start;
+        min-height: 100%;
+        padding: 16px 18px;
+        min-width: 0;
+      }
+
+      .topbar__pane + .topbar__pane {
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .topbar__pane--summary {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .clock {
+        display: grid;
+        gap: 4px;
+        flex: 0 0 auto;
+        min-width: 0;
+        width: 100%;
+      }
+
+      .clock__time {
+        display: inline-block;
+        width: 100%;
+        min-width: 6.5ch;
+        font-size: clamp(2rem, 6vw, 5rem);
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+        font-weight: 600;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1, "lnum" 1;
+      }
+
+      .clock__date {
+        font-size: clamp(0.95rem, 2vw, 1.1rem);
+        color: var(--muted);
+      }
+
+      .clock__weather {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: 0.7fr 1.2fr 1.4fr;
+        gap: 0;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .clock__weather-section {
+        min-width: 0;
+        padding: 12px 14px;
+      }
+
+      .clock__weather-section + .clock__weather-section {
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .clock__weather-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.72rem;
+        color: rgba(245, 242, 235, 0.58);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .clock__weather-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        color: #f3b56a;
+      }
+
+      .clock__weather-main {
+        font-size: 1rem;
+        color: var(--text);
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        min-height: 100%;
+      }
+
+      .clock__weather-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        font-size: 0.78rem;
+        color: rgba(245, 242, 235, 0.68);
+        align-items: center;
+        min-height: 100%;
+      }
+
+      .slide-summary {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        width: 100%;
+        min-width: 0;
+        text-align: center;
+        flex: 1;
+      }
+
+      .slide-summary__slot {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .steps-widget {
+        width: min(100%, 220px);
+        padding: 16px;
+        border-radius: 28px;
+        background:
+          linear-gradient(180deg, rgba(24, 24, 26, 0.98), rgba(10, 10, 11, 0.98));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow:
+          0 22px 40px rgba(0, 0, 0, 0.42),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+
+      .steps-widget__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .steps-widget__streak {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .steps-widget__fire {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: #ffffff;
+        background: radial-gradient(circle at 35% 35%, #ff9e4a, #ff4d1f 68%, #a01e00 100%);
+        box-shadow:
+          0 0 20px rgba(255, 94, 31, 0.45),
+          inset 0 2px 4px rgba(255, 255, 255, 0.18);
+      }
+
+      .steps-widget__fire svg,
+      .steps-widget__spark svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      .steps-widget__spark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .steps-widget__label {
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.44);
+      }
+
+      .steps-widget__days {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 2px;
+      }
+
+      .steps-widget__days strong {
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+
+      .steps-widget__days span {
+        font-size: 0.82rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .steps-widget__divider {
+        height: 1px;
+        margin: 14px 0;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .steps-widget__week {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+      }
+
+      .steps-widget__day {
+        display: grid;
+        justify-items: center;
+        gap: 6px;
+      }
+
+      .steps-widget__dot {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.06);
+        color: transparent;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      .steps-widget__day--done .steps-widget__dot {
+        background: linear-gradient(180deg, #7cff4f, #2fbe2e);
+        color: #071b07;
+        box-shadow:
+          0 0 16px rgba(89, 255, 86, 0.36),
+          inset 0 1px 0 rgba(255, 255, 255, 0.36);
+      }
+
+      .steps-widget__day--current .steps-widget__dot {
+        background: transparent;
+        box-shadow:
+          inset 0 0 0 3px #58df3d,
+          0 0 16px rgba(88, 223, 61, 0.28);
+      }
+
+      .steps-widget__dot svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .steps-widget__day small {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.58);
+      }
+
+      .steps-widget__steps {
+        margin-top: 16px;
+      }
+
+      .steps-widget__steps-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.42);
+      }
+
+      .steps-widget__steps-line {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 6px;
+      }
+
+      .steps-widget__count {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+      }
+
+      .steps-widget__count strong {
+        font-size: 1.05rem;
+      }
+
+      .steps-widget__count span,
+      .steps-widget__percent {
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      .steps-widget__bar {
+        height: 14px;
+        margin-top: 12px;
+        border-radius: 999px;
+        background: rgba(56, 96, 38, 0.34);
+        overflow: hidden;
+      }
+
+      .steps-widget__bar-fill {
+        width: 68%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #3ad535, #57ff44);
+        box-shadow:
+          0 0 18px rgba(87, 255, 68, 0.4),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+      }
+
+      .slide-summary__bars {
+        display: grid;
+        gap: 6px;
+        padding-top: 6px;
+        flex: 0 0 auto;
+      }
+
+      .slide-summary__bars span {
+        width: 14px;
+        height: 3px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(255, 241, 77, 0.2), rgba(255, 241, 77, 0.88));
+        box-shadow: 0 0 10px rgba(255, 241, 77, 0.12);
+      }
+
+      .slide-summary__title {
+        margin: 0;
+        font-size: clamp(1.05rem, 2.2vw, 1.5rem);
+        font-weight: 600;
+        letter-spacing: -0.04em;
+      }
+
+      .slide-summary__copy {
+        display: grid;
+        gap: 8px;
+        flex: 0 1 460px;
+        min-width: 0;
+        width: 100%;
+        max-width: 460px;
+        justify-items: center;
+        align-content: center;
+        text-align: center;
+      }
+
+      .topbar__spacer {
+        min-height: 1px;
+      }
+
+      .slide-summary__meta {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.45;
+        max-width: 34ch;
+      }
+
+      .slide-summary__dots {
+        display: grid;
+        grid-template-columns: repeat(4, 58px);
+        justify-content: center;
+        align-items: center;
+        width: auto;
+        margin-top: 10px;
+        gap: 16px;
+      }
+
+      .slide-summary__dots span {
+        display: grid;
+        place-items: center;
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          filter 180ms ease;
+        cursor: default;
+      }
+
+      .slide-summary__dots button {
+        display: grid;
+        place-items: center;
+        width: 58px;
+        height: 58px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          filter 180ms ease;
+      }
+
+      .slide-summary__dots span:nth-child(1) {
+        background: #d97706;
+        box-shadow:
+          0 10px 24px rgba(217, 119, 6, 0.38),
+          0 0 18px rgba(245, 158, 11, 0.28);
+      }
+
+      .slide-summary__dots span:nth-child(2) {
+        background: #dc2626;
+        box-shadow:
+          0 10px 24px rgba(220, 38, 38, 0.38),
+          0 0 18px rgba(248, 113, 113, 0.24);
+      }
+
+      .slide-summary__dots span:nth-child(3) {
+        background: #2563eb;
+        box-shadow:
+          0 10px 24px rgba(37, 99, 235, 0.38),
+          0 0 18px rgba(96, 165, 250, 0.24);
+      }
+
+      .slide-summary__dots span:nth-child(4) {
+        background: #15803d;
+        box-shadow:
+          0 10px 24px rgba(21, 128, 61, 0.38),
+          0 0 18px rgba(74, 222, 128, 0.22);
+      }
+
+      .slide-summary__dots span:hover {
+        transform: translateY(-4px) scale(1.06);
+        filter: brightness(1.08);
+      }
+
+      .slide-summary__dots span:nth-child(1):hover {
+        box-shadow:
+          0 14px 30px rgba(217, 119, 6, 0.48),
+          0 0 24px rgba(245, 158, 11, 0.4);
+      }
+
+      .slide-summary__dots span:nth-child(2):hover {
+        box-shadow:
+          0 14px 30px rgba(220, 38, 38, 0.48),
+          0 0 24px rgba(248, 113, 113, 0.34);
+      }
+
+      .slide-summary__dots span:nth-child(3):hover {
+        box-shadow:
+          0 14px 30px rgba(37, 99, 235, 0.48),
+          0 0 24px rgba(96, 165, 250, 0.34);
+      }
+
+      .slide-summary__dots span:nth-child(4):hover {
+        box-shadow:
+          0 14px 30px rgba(21, 128, 61, 0.48),
+          0 0 24px rgba(74, 222, 128, 0.32);
+      }
+
+      .slide-summary__dots svg {
+        width: 24px;
+        height: 24px;
+        color: #ffffff;
+      }
+
+      .bank-drawer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(420px, 100vw);
+        z-index: 5;
+        padding: 18px;
+        display: flex;
+        pointer-events: none;
+        transform: translateX(100%);
+        transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .bank-drawer.is-open {
+        pointer-events: auto;
+        transform: translateX(0);
+      }
+
+      .bank-drawer__panel {
+        width: 100%;
+        height: 100%;
+        border-radius: 28px 0 0 28px;
+        background: linear-gradient(180deg, rgba(16, 17, 22, 0.98), rgba(8, 9, 12, 0.98));
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: -24px 0 50px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        padding: 22px;
+        display: grid;
+        grid-template-rows: auto auto auto 1fr;
+        gap: 18px;
+      }
+
+      .bank-drawer__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .bank-drawer__eyebrow {
+        margin: 0;
+        font-size: 0.76rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.48);
+      }
+
+      .bank-drawer__close {
+        width: 40px;
+        height: 40px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+        font-size: 1.1rem;
+        cursor: pointer;
+      }
+
+      .bank-drawer__card {
+        padding: 18px;
+        border-radius: 22px;
+        background:
+          radial-gradient(circle at top right, rgba(96, 165, 250, 0.28), transparent 30%),
+          linear-gradient(135deg, #121826, #1d4ed8);
+        box-shadow: 0 22px 36px rgba(0, 0, 0, 0.26);
+      }
+
+      .bank-drawer__label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .bank-drawer__amount {
+        margin: 12px 0 6px;
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+        font-weight: 700;
+        letter-spacing: -0.05em;
+      }
+
+      .bank-drawer__subtext {
+        color: rgba(255, 255, 255, 0.74);
+        font-size: 0.92rem;
+      }
+
+      .bank-drawer__stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .bank-drawer__stat {
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .bank-drawer__stat strong {
+        display: block;
+        font-size: 1rem;
+        margin-top: 6px;
+      }
+
+      .bank-drawer__transactions {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+      }
+
+      .bank-drawer__heading {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .bank-drawer__list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .bank-drawer__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .bank-drawer__item small {
+        display: block;
+        margin-top: 2px;
+        color: rgba(255, 255, 255, 0.52);
+      }
+
+      .bank-drawer__item strong {
+        font-size: 0.96rem;
+      }
+
+      .bank-drawer__overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        background: rgba(4, 4, 8, 0.42);
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms ease;
+      }
+
+      .bank-drawer__overlay.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .bottom {
+        display: grid;
+        gap: 14px;
+        margin-top: auto;
+      }
+
+      .timeline {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 20px;
+        background:
+          radial-gradient(circle at 40% 50%, rgba(245, 221, 68, 0.08), transparent 18%),
+          linear-gradient(180deg, rgba(28, 28, 28, 0.96), rgba(13, 13, 13, 0.98));
+        backdrop-filter: blur(16px);
+        width: 100%;
+        max-width: 100%;
+        min-height: 110px;
+        overflow: hidden;
+      }
+
+      .timeline__label {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.42);
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        white-space: nowrap;
+        justify-self: start;
+      }
+
+      .time-dial {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        align-items: center;
+        gap: 4px;
+        min-height: 56px;
+      }
+
+      .time-dial__scale {
+        grid-column: 1;
+        grid-row: 2;
+        display: grid;
+        grid-template-columns: repeat(24, minmax(0, 1fr));
+        gap: 1px;
+        padding: 8px 2px 0;
+        color: rgba(255, 255, 255, 0.28);
+        font-size: clamp(0.38rem, 0.8vw, 0.62rem);
+        line-height: 1;
+        letter-spacing: 0;
+        align-items: center;
+      }
+
+      .time-dial__scale span {
+        position: relative;
+        min-width: 0;
+        text-align: center;
+      }
+
+      .time-dial__scale span:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -1px;
+        width: 1px;
+        height: 8px;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 0 6px rgba(255, 255, 255, 0.04);
+      }
+
+      .time-dial__scale span:nth-child(6n):not(:last-child)::after {
+        height: 11px;
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .time-dial__control {
+        position: relative;
+        grid-column: 1;
+        grid-row: 1;
+        width: 100%;
+        height: 34px;
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: visible;
+        --dial-ratio: 0;
+        backdrop-filter: blur(10px);
+      }
+
+      .time-dial__control::before {
+        content: "";
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        top: 50%;
+        height: 1px;
+        transform: translateY(-50%);
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.08) 18%, rgba(255, 232, 74, 0.92) 50%, rgba(255, 255, 255, 0.08) 82%, rgba(255, 255, 255, 0.24));
+        box-shadow:
+          0 0 12px rgba(255, 232, 74, 0.35),
+          0 0 22px rgba(255, 232, 74, 0.12),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+      }
+
+      .time-dial__input {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 34px;
+        min-height: 34px;
+        margin: 0;
+        appearance: none;
+        background: transparent;
+        -webkit-appearance: none;
+        cursor: default;
+        pointer-events: none;
+      }
+
+      .time-dial__input::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 1px;
+        border-radius: 999px;
+        background: transparent;
+        border: 0;
+      }
+
+      .time-dial__input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 34px;
+        height: 34px;
+        margin-top: -16px;
+        border: 0;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.38), transparent 28%),
+          radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 34%),
+          linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.04) 28%, rgba(20, 20, 20, 0.88) 70%, rgba(10, 10, 10, 0.96));
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.14),
+          0 0 0 3px rgba(18, 18, 18, 0.95),
+          0 0 0 6px rgba(31, 31, 31, 0.86),
+          0 0 10px rgba(0, 0, 0, 0.45),
+          0 0 16px rgba(255, 232, 74, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.18),
+          inset 0 -8px 12px rgba(0, 0, 0, 0.3);
+        transition:
+          transform 150ms ease,
+          box-shadow 150ms ease;
+      }
+
+      .time-dial__input::-moz-range-track {
+        width: 100%;
+        height: 1px;
+        background: transparent;
+        border: 0;
+      }
+
+      .time-dial__input::-moz-range-thumb {
+        width: 34px;
+        height: 34px;
+        border: 0;
+        margin-top: 0;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 34%),
+          radial-gradient(circle at 50% 50%, rgba(27, 27, 27, 0.96), rgba(11, 11, 11, 0.98));
+        box-shadow:
+          0 0 0 3px rgba(18, 18, 18, 0.95),
+          0 0 0 6px rgba(31, 31, 31, 0.9),
+          0 0 10px rgba(0, 0, 0, 0.45),
+          0 0 16px rgba(255, 232, 74, 0.1);
+        transition:
+          transform 150ms ease,
+          box-shadow 150ms ease;
+      }
+
+      .time-dial__marker {
+        position: absolute;
+        top: -10px;
+        left: calc(8px + (100% - 16px) * var(--dial-ratio));
+        z-index: 3;
+        display: block;
+        width: max-content;
+        min-width: 0;
+        text-align: center;
+        white-space: nowrap;
+        color: #fff14d;
+        font-size: 1.05rem;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        transform: translate(-50%, -100%);
+        text-shadow:
+          0 0 10px rgba(255, 241, 77, 0.18),
+          0 0 18px rgba(255, 241, 77, 0.08);
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .edge-fade {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.3), transparent 18%, transparent 74%, rgba(0, 0, 0, 0.4) 100%),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.15), transparent 12%, transparent 88%, rgba(0, 0, 0, 0.18));
+        z-index: 1;
+      }
+
+      @media (max-width: 700px) {
+        .app {
+          height: 100svh;
+          overflow: hidden;
+        }
+
+        .hud {
+          padding: 12px;
+          gap: 10px;
+        }
+
+        .tasks-rail {
+          gap: 8px;
+        }
+
+        .topbar {
+          width: 100%;
+          grid-template-columns: 1fr;
+          border-radius: 18px;
+        }
+
+        .topbar__pane {
+          padding: 12px 14px;
+          border-left: 0;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .topbar__pane:first-child {
+          border-top: 0;
+        }
+
+        .clock {
+          min-width: 0;
+          width: 100%;
+        }
+
+        .clock__time {
+          min-width: 0;
+        }
+
+        .slide-summary {
+          flex-direction: column;
+          width: 100%;
+        }
+
+        .slide-summary__slot {
+          width: 100%;
+          flex: 0 0 auto;
+        }
+
+        .steps-widget {
+          width: min(100%, 260px);
+        }
+
+        .clock__weather {
+          grid-template-columns: 1fr;
+        }
+
+        .bank-drawer {
+          width: 100%;
+          padding: 12px;
+        }
+
+        .bank-drawer__panel {
+          border-radius: 22px;
+          padding: 18px;
+        }
+
+        .bank-drawer__stats {
+          grid-template-columns: 1fr;
+        }
+
+        .clock__weather-section + .clock__weather-section {
+          border-left: 0;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .slide-summary__bars {
+          display: flex;
+          gap: 6px;
+          padding-top: 0;
+        }
+
+        .timeline {
+          width: 100%;
+          border-radius: 16px;
+        }
+
+        .timeline {
+          min-height: 96px;
+          padding: 10px 12px;
+          gap: 6px;
+        }
+
+        .timeline__label {
+          margin-bottom: 0;
+        }
+
+        .time-dial {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto;
+          gap: 4px;
+          min-height: 54px;
+        }
+
+        .time-dial__scale {
+          font-size: 0.34rem;
+          padding: 6px 2px 0;
+        }
+
+        .time-dial__control {
+          grid-row: 1;
+          height: 28px;
+          min-height: 28px;
+        }
+
+        .time-dial__marker {
+          top: -8px;
+          font-size: 0.95rem;
+        }
+
+        .time-dial__input {
+          height: 28px;
+          min-height: 28px;
+        }
+
+        .time-dial__input::-webkit-slider-thumb,
+        .time-dial__input::-moz-range-thumb {
+          width: 28px;
+          height: 28px;
+        }
+
+        .task-card {
+          min-height: 62px;
+          border-radius: 16px;
+        }
+
+        .bottom {
+          gap: 12px;
+          padding-bottom: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app" aria-label="Time-based image slider">
+      <div class="slides" id="slides" aria-hidden="true"></div>
+      <div class="edge-fade" aria-hidden="true"></div>
+      <button class="bank-drawer__overlay" id="bankOverlay" type="button" aria-label="Close bank page"></button>
+      <aside class="bank-drawer" id="bankDrawer" aria-hidden="true">
+        <div class="bank-drawer__panel">
+          <div class="bank-drawer__top">
+            <p class="bank-drawer__eyebrow">Bank Overview</p>
+            <button class="bank-drawer__close" id="bankClose" type="button" aria-label="Close bank page">×</button>
+          </div>
+          <div class="bank-drawer__card">
+            <div class="bank-drawer__label">Current Balance</div>
+            <div class="bank-drawer__amount">$24,580.45</div>
+            <div class="bank-drawer__subtext">Main checking ending in 4821</div>
+          </div>
+          <div class="bank-drawer__stats">
+            <div class="bank-drawer__stat">
+              <div class="bank-drawer__label">Incoming</div>
+              <strong>$5,420</strong>
+            </div>
+            <div class="bank-drawer__stat">
+              <div class="bank-drawer__label">Outgoing</div>
+              <strong>$1,980</strong>
+            </div>
+            <div class="bank-drawer__stat">
+              <div class="bank-drawer__label">Savings</div>
+              <strong>$12,300</strong>
+            </div>
+          </div>
+          <div class="bank-drawer__transactions">
+            <h2 class="bank-drawer__heading">Recent Activity</h2>
+            <div class="bank-drawer__list">
+              <div class="bank-drawer__item">
+                <div>
+                  <strong>Salary Deposit</strong>
+                  <small>Today, 9:30 AM</small>
+                </div>
+                <strong>+$2,400</strong>
+              </div>
+              <div class="bank-drawer__item">
+                <div>
+                  <strong>Market Square</strong>
+                  <small>Yesterday, 6:18 PM</small>
+                </div>
+                <strong>-$84.12</strong>
+              </div>
+              <div class="bank-drawer__item">
+                <div>
+                  <strong>Power Bill</strong>
+                  <small>Apr 1, 8:02 AM</small>
+                </div>
+                <strong>-$120.00</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="hud">
+        <header class="topbar">
+          <div class="topbar__pane">
+            <div class="clock">
+              <div class="clock__time" id="currentTime">--:--</div>
+              <div class="clock__date" id="currentDate">Loading date...</div>
+              <div class="clock__weather" aria-label="Weather summary">
+                <div class="clock__weather-section clock__weather-label">
+                  <svg class="clock__weather-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="currentColor"
+                      d="M12 3.5a1 1 0 0 1 1 1v1.15a1 1 0 1 1-2 0V4.5a1 1 0 0 1 1-1Zm0 14.85a1 1 0 0 1 1 1v1.15a1 1 0 1 1-2 0V19.35a1 1 0 0 1 1-1Zm8.5-7.35a1 1 0 1 1 0 2h-1.15a1 1 0 1 1 0-2h1.15Zm-15.7 0a1 1 0 1 1 0 2H3.65a1 1 0 1 1 0-2H4.8Zm11.02-5.67a1 1 0 0 1 1.42 0l.81.81a1 1 0 0 1-1.42 1.42l-.81-.81a1 1 0 0 1 0-1.42Zm-8.68 8.68a1 1 0 0 1 1.42 0l.81.81a1 1 0 0 1-1.42 1.42l-.81-.81a1 1 0 0 1 0-1.42Zm9.49 1.42a1 1 0 0 1 0-1.42l.81-.81a1 1 0 1 1 1.42 1.42l-.81.81a1 1 0 0 1-1.42 0Zm-8.68-8.68a1 1 0 0 1 0-1.42l.81-.81A1 1 0 0 1 9.18 5.1l-.81.81a1 1 0 0 1-1.42 0ZM12 8a4 4 0 1 1 0 8a4 4 0 0 1 0-8Z"
+                    />
+                  </svg>
+                  <span>Weather</span>
+                </div>
+                <div class="clock__weather-section clock__weather-main">27°C, Clear Sky</div>
+                <div class="clock__weather-section clock__weather-meta">
+                  <span>Humidity 68%</span>
+                  <span>Wind 9 km/h</span>
+                  <span>Rain 4%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="topbar__pane topbar__pane--summary">
+            <div class="slide-summary" aria-live="polite">
+              <div class="slide-summary__slot" aria-hidden="true"></div>
+              <div class="slide-summary__copy">
+                <h1 class="slide-summary__title" id="slideTitle">Loading...</h1>
+                <p class="slide-summary__meta" id="slideMeta">The image changes with the time of day.</p>
+                <div class="slide-summary__dots">
+                  <span>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M12 2.75a1 1 0 0 1 1 1v1.6a1 1 0 1 1-2 0v-1.6a1 1 0 0 1 1-1Zm0 14.65a1 1 0 0 1 1 1v1.6a1 1 0 1 1-2 0V18.4a1 1 0 0 1 1-1ZM21.25 11a1 1 0 1 1 0 2h-1.6a1 1 0 1 1 0-2h1.6Zm-16.9 0a1 1 0 1 1 0 2h-1.6a1 1 0 1 1 0-2h1.6Zm12.38-5.8a1 1 0 0 1 1.41 0l1.13 1.13a1 1 0 0 1-1.41 1.41l-1.13-1.13a1 1 0 0 1 0-1.41Zm-10.59 10.6a1 1 0 0 1 1.41 0l1.13 1.13a1 1 0 1 1-1.41 1.41L6.14 17.2a1 1 0 0 1 0-1.41Zm12 .01a1 1 0 0 1 0 1.41l-1.13 1.13a1 1 0 1 1-1.41-1.41l1.13-1.13a1 1 0 0 1 1.41 0Zm-10.6-10.6a1 1 0 0 1 0 1.41L6.41 7.75A1 1 0 1 1 5 6.34L6.13 5.2a1 1 0 0 1 1.41 0ZM12 7.25A4.75 4.75 0 1 1 7.25 12A4.76 4.76 0 0 1 12 7.25Z"
+                      />
+                    </svg>
+                  </span>
+                  <span>
+                    <button type="button" id="bankTrigger" aria-label="Open bank page">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M7.5 18.5h8.8a4.2 4.2 0 0 0 .5-8.37A5.5 5.5 0 0 0 6.21 8.6A4.4 4.4 0 0 0 7.5 18.5Z"
+                        />
+                      </svg>
+                    </button>
+                  </span>
+                  <span>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M7.5 13.75a1 1 0 0 1 .92.62l.58 1.4l.58-1.4a1 1 0 0 1 1.84 0l.58 1.4l.58-1.4a1 1 0 1 1 1.84.78l-1.5 3.6a1 1 0 0 1-1.84 0l-.58-1.4l-.58 1.4a1 1 0 0 1-1.84 0l-1.5-3.6a1 1 0 0 1 .92-1.4Zm8.8-3.25A3.8 3.8 0 0 0 16 10a5 5 0 0 0-9.72-1.46A3.95 3.95 0 0 0 7.5 16H8l.58-1.4a2.8 2.8 0 0 1 5.16 0l.58 1.4h2a3 3 0 0 0 0-6Z"
+                      />
+                    </svg>
+                  </span>
+                  <span>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M12 3.5a1 1 0 0 1 .97.76l2.2 8.67h2.58a1 1 0 0 1 .78 1.62l-5.75 7a1 1 0 0 1-1.75-.86l1.16-5.94H8.25a1 1 0 0 1-.96-1.28l3.75-9.25A1 1 0 0 1 12 3.5Z"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <div class="slide-summary__slot"></div>
+            </div>
+          </div>
+        </header>
+
+        <aside class="tasks-rail" aria-label="Upcoming tasks">
+          <div class="task-card">1</div>
+          <div class="task-card">2</div>
+          <div class="task-card">3</div>
+        </aside>
+
+        <div class="bottom">
+          <nav class="timeline" aria-label="Available times">
+            <span class="timeline__label">Timeline</span>
+            <div class="time-dial">
+              <div class="time-dial__scale" aria-hidden="true"></div>
+              <div class="time-dial__control">
+                <input id="timeDial" class="time-dial__input" type="range" min="0" max="23.99" step="0.01" aria-hidden="true" tabindex="-1" />
+                <div class="time-dial__marker" id="timeDialMarker" aria-hidden="true">9</div>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </section>
+    </main>
+
+    <script src="./index.js"></script>
+  </body>
+</html>
