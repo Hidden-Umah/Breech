@@ -50,6 +50,7 @@
       .slides {
         position: absolute;
         inset: 0;
+        transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
       }
 
       .slide {
@@ -114,6 +115,7 @@
         flex-direction: column;
         gap: clamp(12px, 2vw, 18px);
         padding: clamp(14px, 2.2vw, 28px);
+        transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
       }
 
       .tasks-rail {
@@ -615,157 +617,98 @@
         top: 0;
         right: 0;
         bottom: 0;
-        width: min(420px, 100vw);
+        left: 0;
+        width: 100%;
         z-index: 5;
-        padding: 18px;
+        padding: 0;
         display: flex;
-        pointer-events: none;
         transform: translateX(100%);
         transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
       }
 
       .bank-drawer.is-open {
-        pointer-events: auto;
         transform: translateX(0);
       }
 
       .bank-drawer__panel {
         width: 100%;
         height: 100%;
-        border-radius: 28px 0 0 28px;
-        background: linear-gradient(180deg, rgba(16, 17, 22, 0.98), rgba(8, 9, 12, 0.98));
-        border-left: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: -24px 0 50px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-        padding: 22px;
+        border-radius: 0;
+        background:
+          linear-gradient(180deg, rgba(16, 17, 22, 0.68), rgba(8, 9, 12, 0.82)),
+          var(--bank-bg-image, url("./image/sevenpm.jpg")) center / cover no-repeat;
+        border-left: 0;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        padding: 28px;
         display: grid;
-        grid-template-rows: auto auto auto 1fr;
+        grid-template-rows: auto 1fr;
         gap: 18px;
       }
 
       .bank-drawer__top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      .bank-drawer__eyebrow {
-        margin: 0;
-        font-size: 0.76rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.48);
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+        align-items: stretch;
+        gap: 16px;
       }
 
       .bank-drawer__close {
-        width: 40px;
-        height: 40px;
+        width: 100%;
+        min-width: 56px;
+        height: 100%;
         border: 0;
-        border-radius: 50%;
+        border-radius: 24px;
         background: rgba(255, 255, 255, 0.08);
         color: #ffffff;
         font-size: 1.1rem;
         cursor: pointer;
       }
 
-      .bank-drawer__card {
-        padding: 18px;
-        border-radius: 22px;
-        background:
-          radial-gradient(circle at top right, rgba(96, 165, 250, 0.28), transparent 30%),
-          linear-gradient(135deg, #121826, #1d4ed8);
-        box-shadow: 0 22px 36px rgba(0, 0, 0, 0.26);
+      .bank-drawer__canvas {
+        display: grid;
+        grid-template-rows: 20% 60% 20%;
+        min-height: 0;
+        gap: 16px;
       }
 
-      .bank-drawer__label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.16em;
+      .bank-drawer__section {
+        min-height: 0;
+      }
+
+      .bank-drawer__row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        height: 100%;
+      }
+
+      .bank-drawer__box {
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.04);
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        display: grid;
+        place-items: center;
+        font-size: clamp(1.2rem, 2.5vw, 2rem);
+        font-weight: 700;
         color: rgba(255, 255, 255, 0.72);
       }
 
-      .bank-drawer__amount {
-        margin: 12px 0 6px;
-        font-size: clamp(1.8rem, 4vw, 2.4rem);
-        font-weight: 700;
-        letter-spacing: -0.05em;
-      }
-
-      .bank-drawer__subtext {
-        color: rgba(255, 255, 255, 0.74);
-        font-size: 0.92rem;
-      }
-
-      .bank-drawer__stats {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-      }
-
-      .bank-drawer__stat {
-        padding: 14px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-      }
-
-      .bank-drawer__stat strong {
-        display: block;
-        font-size: 1rem;
-        margin-top: 6px;
-      }
-
-      .bank-drawer__transactions {
-        display: grid;
-        align-content: start;
-        gap: 10px;
-      }
-
-      .bank-drawer__heading {
-        margin: 0;
-        font-size: 1rem;
-      }
-
-      .bank-drawer__list {
-        display: grid;
-        gap: 10px;
-      }
-
-      .bank-drawer__item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 14px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-      }
-
-      .bank-drawer__item small {
-        display: block;
-        margin-top: 2px;
-        color: rgba(255, 255, 255, 0.52);
-      }
-
-      .bank-drawer__item strong {
-        font-size: 0.96rem;
-      }
-
       .bank-drawer__overlay {
-        position: absolute;
-        inset: 0;
-        z-index: 4;
-        background: rgba(4, 4, 8, 0.42);
-        backdrop-filter: blur(6px);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 220ms ease;
+        display: none;
       }
 
-      .bank-drawer__overlay.is-visible {
-        opacity: 1;
-        pointer-events: auto;
+      .app.is-bank-open .slides,
+      .app.is-bank-open .edge-fade,
+      .app.is-bank-open .hud {
+        transform: translateX(-100%);
+      }
+
+      .app.is-bank-open .bank-drawer {
+        transform: translateX(0);
       }
 
       .bottom {
@@ -981,6 +924,7 @@
           linear-gradient(180deg, rgba(0, 0, 0, 0.3), transparent 18%, transparent 74%, rgba(0, 0, 0, 0.4) 100%),
           linear-gradient(90deg, rgba(0, 0, 0, 0.15), transparent 12%, transparent 88%, rgba(0, 0, 0, 0.18));
         z-index: 1;
+        transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
       }
 
       @media (max-width: 700px) {
@@ -1043,15 +987,24 @@
 
         .bank-drawer {
           width: 100%;
-          padding: 12px;
+          padding: 0;
         }
 
         .bank-drawer__panel {
-          border-radius: 22px;
+          border-radius: 0;
           padding: 18px;
         }
 
-        .bank-drawer__stats {
+        .bank-drawer__canvas {
+          grid-template-rows: auto auto auto;
+          padding: 0;
+        }
+
+        .bank-drawer__row {
+          grid-template-columns: 1fr;
+        }
+
+        .bank-drawer__top {
           grid-template-columns: 1fr;
         }
 
@@ -1135,52 +1088,22 @@
       <aside class="bank-drawer" id="bankDrawer" aria-hidden="true">
         <div class="bank-drawer__panel">
           <div class="bank-drawer__top">
-            <p class="bank-drawer__eyebrow">Bank Overview</p>
+            <div class="bank-drawer__box">1</div>
+            <div class="bank-drawer__box">2</div>
+            <div class="bank-drawer__box">3</div>
             <button class="bank-drawer__close" id="bankClose" type="button" aria-label="Close bank page">×</button>
           </div>
-          <div class="bank-drawer__card">
-            <div class="bank-drawer__label">Current Balance</div>
-            <div class="bank-drawer__amount">$24,580.45</div>
-            <div class="bank-drawer__subtext">Main checking ending in 4821</div>
-          </div>
-          <div class="bank-drawer__stats">
-            <div class="bank-drawer__stat">
-              <div class="bank-drawer__label">Incoming</div>
-              <strong>$5,420</strong>
-            </div>
-            <div class="bank-drawer__stat">
-              <div class="bank-drawer__label">Outgoing</div>
-              <strong>$1,980</strong>
-            </div>
-            <div class="bank-drawer__stat">
-              <div class="bank-drawer__label">Savings</div>
-              <strong>$12,300</strong>
-            </div>
-          </div>
-          <div class="bank-drawer__transactions">
-            <h2 class="bank-drawer__heading">Recent Activity</h2>
-            <div class="bank-drawer__list">
-              <div class="bank-drawer__item">
-                <div>
-                  <strong>Salary Deposit</strong>
-                  <small>Today, 9:30 AM</small>
-                </div>
-                <strong>+$2,400</strong>
+          <div class="bank-drawer__canvas">
+            <div class="bank-drawer__section"></div>
+            <div class="bank-drawer__section">
+              <div class="bank-drawer__row">
+                <div class="bank-drawer__box">4</div>
+                <div class="bank-drawer__box">5</div>
+                <div class="bank-drawer__box">6</div>
               </div>
-              <div class="bank-drawer__item">
-                <div>
-                  <strong>Market Square</strong>
-                  <small>Yesterday, 6:18 PM</small>
-                </div>
-                <strong>-$84.12</strong>
-              </div>
-              <div class="bank-drawer__item">
-                <div>
-                  <strong>Power Bill</strong>
-                  <small>Apr 1, 8:02 AM</small>
-                </div>
-                <strong>-$120.00</strong>
-              </div>
+            </div>
+            <div class="bank-drawer__section">
+              <div class="bank-drawer__box">7</div>
             </div>
           </div>
         </div>

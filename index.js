@@ -4,35 +4,35 @@ const slides = [
     hour: 12,
     title: "Midday Glow",
     meta: "The scene closest to noon.",
-    src: "./images/12pm.jpg",
+    src: "./image/twelve.jpg",
   },
   {
     label: "4 PM",
     hour: 16,
     title: "Late Afternoon",
     meta: "Warm light for the end of the workday.",
-    src: "./images/4pm.jpg",
+    src: "./image/four.jpg",
   },
   {
     label: "7 PM",
     hour: 19,
     title: "Sunset Hour",
     meta: "The image that matches the early evening.",
-    src: "./images/7pm.jpg",
+    src: "./image/sevenpm.jpg",
   },
   {
     label: "10 PM",
     hour: 22,
     title: "Nightfall",
     meta: "Darker tones for late evening.",
-    src: "./images/10pm.jpg",
+    src: "./image/tenpm.jpg",
   },
   {
     label: "11 PM",
     hour: 23,
     title: "Late Night",
     meta: "The last frame in the set.",
-    src: "./images/11pm.jpg",
+    src: "./image/twentythree.jpg",
   },
 ];
 
@@ -40,15 +40,20 @@ const timelineHours = Array.from({ length: 24 }, (_, hour) => hour);
 const MAX_DIAL_VALUE = 23.99;
 
 const slidesEl = document.getElementById("slides");
+const appEl = document.querySelector(".app");
 const currentTimeEl = document.getElementById("currentTime");
 const currentDateEl = document.getElementById("currentDate");
 const timeDialEl = document.getElementById("timeDial");
 const timeDialMarkerEl = document.getElementById("timeDialMarker");
+const bankTimeDialEl = document.getElementById("bankTimeDial");
+const bankTimeDialMarkerEl = document.getElementById("bankTimeDialMarker");
 const slideTitleEl = document.getElementById("slideTitle");
 const slideMetaEl = document.getElementById("slideMeta");
 const timelineScaleEl = document.querySelector(".time-dial__scale");
+const bankTimelineScaleEl = document.getElementById("bankTimeDialScale");
 const bankTriggerEl = document.getElementById("bankTrigger");
 const bankDrawerEl = document.getElementById("bankDrawer");
+const bankDrawerPanelEl = bankDrawerEl?.querySelector(".bank-drawer__panel");
 const bankOverlayEl = document.getElementById("bankOverlay");
 const bankCloseEl = document.getElementById("bankClose");
 
@@ -122,17 +127,18 @@ function getDialPercent(value) {
   return Math.min(Number(value), MAX_DIAL_VALUE) / MAX_DIAL_VALUE;
 }
 
-function updateDialMarkerPosition(value) {
-  timeDialEl.parentElement.style.setProperty("--dial-ratio", getDialPercent(value));
+function updateDialMarkerPosition(controlEl, value) {
+  controlEl?.parentElement?.style.setProperty("--dial-ratio", getDialPercent(value));
 }
 
-function buildTimelineScale() {
-  timelineScaleEl.innerHTML = "";
+function buildTimelineScale(scaleEl) {
+  if (!scaleEl) return;
+  scaleEl.innerHTML = "";
 
   timelineHours.forEach((hour) => {
     const label = document.createElement("span");
     label.textContent = pad(hour);
-    timelineScaleEl.appendChild(label);
+    scaleEl.appendChild(label);
   });
 }
 
@@ -146,14 +152,18 @@ function setDialValue(value, animate = false) {
     }
     dialRenderedValue = nextValue;
     timeDialEl.value = String(nextValue);
-    updateDialMarkerPosition(nextValue);
+    if (bankTimeDialEl) bankTimeDialEl.value = String(nextValue);
+    updateDialMarkerPosition(timeDialEl, nextValue);
+    updateDialMarkerPosition(bankTimeDialEl, nextValue);
     return;
   }
 
   if (dialRenderedValue === null || Number.isNaN(dialRenderedValue)) {
     dialRenderedValue = nextValue;
     timeDialEl.value = String(nextValue);
-    updateDialMarkerPosition(nextValue);
+    if (bankTimeDialEl) bankTimeDialEl.value = String(nextValue);
+    updateDialMarkerPosition(timeDialEl, nextValue);
+    updateDialMarkerPosition(bankTimeDialEl, nextValue);
     return;
   }
 
@@ -172,7 +182,9 @@ function setDialValue(value, animate = false) {
 
     dialRenderedValue = currentValue;
     timeDialEl.value = String(currentValue);
-    updateDialMarkerPosition(currentValue);
+    if (bankTimeDialEl) bankTimeDialEl.value = String(currentValue);
+    updateDialMarkerPosition(timeDialEl, currentValue);
+    updateDialMarkerPosition(bankTimeDialEl, currentValue);
 
     if (progress < 1) {
       dialAnimationFrame = requestAnimationFrame(step);
@@ -182,7 +194,9 @@ function setDialValue(value, animate = false) {
     dialAnimationFrame = null;
     dialRenderedValue = nextValue;
     timeDialEl.value = String(nextValue);
-    updateDialMarkerPosition(nextValue);
+    if (bankTimeDialEl) bankTimeDialEl.value = String(nextValue);
+    updateDialMarkerPosition(timeDialEl, nextValue);
+    updateDialMarkerPosition(bankTimeDialEl, nextValue);
   };
 
   dialAnimationFrame = requestAnimationFrame(step);
@@ -195,13 +209,15 @@ function updateText(index, now) {
   slideTitleEl.textContent = slide.title;
   slideMetaEl.textContent = slide.meta;
   timeDialMarkerEl.textContent = formatDialClock(now);
+  if (bankTimeDialMarkerEl) bankTimeDialMarkerEl.textContent = formatDialClock(now);
   setDialValue(getTimeDialValue(now), true);
+  bankDrawerPanelEl?.style.setProperty("--bank-bg-image", `url("${slide.src}")`);
 }
 
 function setBankDrawerState(isOpen) {
   isBankDrawerOpen = isOpen;
+  appEl.classList.toggle("is-bank-open", isOpen);
   bankDrawerEl.classList.toggle("is-open", isOpen);
-  bankOverlayEl.classList.toggle("is-visible", isOpen);
   bankDrawerEl.setAttribute("aria-hidden", String(!isOpen));
 }
 
@@ -265,11 +281,14 @@ function tick() {
 
 function init() {
   slides.forEach((slide) => preloadImage(slide.src));
-  buildTimelineScale();
+  buildTimelineScale(timelineScaleEl);
+  buildTimelineScale(bankTimelineScaleEl);
 
   dialRenderedValue = getTimeDialValue(new Date());
   timeDialEl.value = String(dialRenderedValue);
+  if (bankTimeDialEl) bankTimeDialEl.value = String(dialRenderedValue);
   timeDialMarkerEl.textContent = formatDialClock(new Date());
+  if (bankTimeDialMarkerEl) bankTimeDialMarkerEl.textContent = formatDialClock(new Date());
   timeDialEl.parentElement.style.setProperty("--dial-position", `${(dialRenderedValue / MAX_DIAL_VALUE) * 100}%`);
 
   const initialIndex = getCurrentSlideIndex(getActiveTime());
