@@ -81,8 +81,18 @@ const bankDrawerPanelEl = bankDrawerEl?.querySelector(".bank-drawer__panel");
 const bankOverlayEl = document.getElementById("bankOverlay");
 const todoListEls = Array.from(document.querySelectorAll("[data-todo-list]"));
 const fourthWorkspaceEl = document.getElementById("fourthWorkspace");
-const fourthConnectionsEl = document.getElementById("fourthConnections");
-const interactivePanels = Array.from(document.querySelectorAll("[data-interactive-panel]"));
+const fourthAddPanelEl = document.getElementById("fourthAddPanel");
+const fourthBoardTriggerEl = document.getElementById("fourthBoardTrigger");
+const fourthBoardTabsEl = document.getElementById("fourthBoardTabs");
+const fourthAddBoardEl = document.getElementById("fourthAddBoard");
+const fourthBoardPropertiesEl = document.getElementById("fourthBoardProperties");
+const fourthBoardPropertiesCloseEl = document.getElementById("fourthBoardPropertiesClose");
+const fourthBoardColorEl = document.getElementById("fourthBoardColor");
+const fourthBoardColorTextEl = document.getElementById("fourthBoardColorText");
+const fourthBoardImageEl = document.getElementById("fourthBoardImage");
+const fourthBoardResetEl = document.getElementById("fourthBoardReset");
+const STACKED_VISIBLE_TASKS = 3;
+const DEFAULT_BOARD_COLOR = "#08110d";
 
 let activeIndex = -1;
 let activeSlide = null;
@@ -94,7 +104,11 @@ let todoState = loadTodoState();
 let panelInteraction = null;
 let panelZIndex = 5;
 let connectorInteraction = null;
-const panelConnections = [];
+let activeBoardId = "board-1";
+let boardIdCounter = 2;
+let panelIdCounter = document.querySelectorAll("[data-interactive-panel]").length + 1;
+const boardConnections = new Map([["board-1", []]]);
+const todoStackState = new Map();
 
 const imageCache = new Map();
 
@@ -110,9 +124,99 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function getBoardEls() {
+  return Array.from(document.querySelectorAll("[data-board-id]"));
+}
+
+function getBoardEl(boardId = activeBoardId) {
+  return document.querySelector(`[data-board-id="${boardId}"]`);
+}
+
+function getActiveBoardEl() {
+  return getBoardEl(activeBoardId);
+}
+
+function normalizeHexColor(value, fallback = DEFAULT_BOARD_COLOR) {
+  const trimmed = String(value || "").trim();
+  return /^#([0-9a-fA-F]{6})$/.test(trimmed) ? trimmed : fallback;
+}
+
+function applyBoardAppearance(boardEl, options = {}) {
+  if (!boardEl) return;
+  const nextColor = normalizeHexColor(options.color || boardEl.dataset.boardColor || DEFAULT_BOARD_COLOR);
+  const nextImage = String(options.image ?? boardEl.dataset.boardImage ?? "").trim();
+
+  boardEl.dataset.boardColor = nextColor;
+  boardEl.dataset.boardImage = nextImage;
+
+  if (boardEl.dataset.boardId === activeBoardId && fourthWorkspaceEl) {
+    fourthWorkspaceEl.style.backgroundColor = nextColor;
+    fourthWorkspaceEl.style.backgroundImage = nextImage
+      ? `linear-gradient(180deg, rgba(4, 8, 6, 0.42), rgba(4, 8, 6, 0.68)), url("${nextImage}")`
+      : "";
+  }
+}
+
+function syncBoardPropertiesForm(boardEl = getActiveBoardEl()) {
+  if (!boardEl || !fourthBoardPropertiesEl) return;
+  const boardColor = normalizeHexColor(boardEl.dataset.boardColor || DEFAULT_BOARD_COLOR);
+  const boardImage = String(boardEl.dataset.boardImage || "");
+
+  if (fourthBoardColorEl) fourthBoardColorEl.value = boardColor;
+  if (fourthBoardColorTextEl) fourthBoardColorTextEl.value = boardColor;
+  if (fourthBoardImageEl) fourthBoardImageEl.value = boardImage;
+}
+
+function openBoardProperties() {
+  if (!fourthBoardPropertiesEl) return;
+  syncBoardPropertiesForm();
+  fourthBoardPropertiesEl.hidden = false;
+}
+
+function closeBoardProperties() {
+  if (!fourthBoardPropertiesEl) return;
+  fourthBoardPropertiesEl.hidden = true;
+}
+
+function getBoardConnections(boardId = activeBoardId) {
+  if (!boardConnections.has(boardId)) {
+    boardConnections.set(boardId, []);
+  }
+  return boardConnections.get(boardId);
+}
+
+function getBoardPanels(boardId = activeBoardId) {
+  return Array.from(getBoardEl(boardId)?.querySelectorAll("[data-interactive-panel]") || []);
+}
+
+function getBoardConnectionsEl(boardId = activeBoardId) {
+  return getBoardEl(boardId)?.querySelector(".fourth-drawer__connections") || null;
+}
+
+function renderBoardTabs() {
+  if (!fourthBoardTabsEl) return;
+
+  Array.from(fourthBoardTabsEl.querySelectorAll("[data-board-tab]")).forEach((tabEl) => {
+    tabEl.classList.toggle("is-active", tabEl.dataset.boardTab === activeBoardId);
+  });
+}
+
+function switchBoard(boardId) {
+  activeBoardId = boardId;
+  getBoardEls().forEach((boardEl) => {
+    boardEl.classList.toggle("is-active", boardEl.dataset.boardId === boardId);
+  });
+  applyBoardAppearance(getActiveBoardEl(), {});
+  renderBoardTabs();
+  clearConnectionTargets();
+  renderPanelConnections();
+  syncBoardPropertiesForm();
+}
+
 function getWorkspacePoint(clientX, clientY) {
-  if (!fourthWorkspaceEl) return { x: 0, y: 0 };
-  const rect = fourthWorkspaceEl.getBoundingClientRect();
+  const boardEl = getActiveBoardEl();
+  if (!boardEl) return { x: 0, y: 0 };
+  const rect = boardEl.getBoundingClientRect();
   return {
     x: clientX - rect.left,
     y: clientY - rect.top,
@@ -120,9 +224,10 @@ function getWorkspacePoint(clientX, clientY) {
 }
 
 function getNodeCenter(nodeEl) {
-  if (!nodeEl || !fourthWorkspaceEl) return { x: 0, y: 0 };
+  const boardEl = nodeEl?.closest?.("[data-board-id]");
+  if (!nodeEl || !boardEl) return { x: 0, y: 0 };
   const nodeRect = nodeEl.getBoundingClientRect();
-  const workspaceRect = fourthWorkspaceEl.getBoundingClientRect();
+  const workspaceRect = boardEl.getBoundingClientRect();
   return {
     x: nodeRect.left - workspaceRect.left + nodeRect.width / 2,
     y: nodeRect.top - workspaceRect.top + nodeRect.height / 2,
@@ -135,17 +240,21 @@ function buildConnectionPath(startPoint, endPoint) {
 }
 
 function clearConnectionTargets() {
-  interactivePanels.forEach((panelEl) => panelEl.classList.remove("is-connection-target"));
+  getBoardPanels().forEach((panelEl) => panelEl.classList.remove("is-connection-target"));
 }
 
 function renderPanelConnections() {
+  const fourthConnectionsEl = getBoardConnectionsEl();
   if (!fourthConnectionsEl) return;
 
   fourthConnectionsEl.innerHTML = "";
 
-  panelConnections.forEach((connection) => {
-    const fromPanel = interactivePanels.find((panelEl) => panelEl.dataset.panelId === connection.from);
-    const toPanel = interactivePanels.find((panelEl) => panelEl.dataset.panelId === connection.to);
+  const panels = getBoardPanels();
+  const panelConnections = getBoardConnections();
+
+  panelConnections.forEach((connection, index) => {
+    const fromPanel = panels.find((panelEl) => panelEl.dataset.panelId === connection.from);
+    const toPanel = panels.find((panelEl) => panelEl.dataset.panelId === connection.to);
     if (!fromPanel || !toPanel) return;
 
     const startPoint = getNodeCenter(fromPanel.querySelector("[data-output-node]"));
@@ -153,6 +262,11 @@ function renderPanelConnections() {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("class", "fourth-drawer__connection-line");
     path.setAttribute("d", buildConnectionPath(startPoint, endPoint));
+    path.setAttribute("data-connection-index", String(index));
+    path.addEventListener("click", () => {
+      panelConnections.splice(index, 1);
+      renderPanelConnections();
+    });
     fourthConnectionsEl.appendChild(path);
   });
 
@@ -166,15 +280,151 @@ function renderPanelConnections() {
   }
 }
 
+function attachInteractivePanel(panelEl) {
+  bringPanelToFront(panelEl);
+
+  panelEl.querySelector("[data-drag-handle]")?.addEventListener("pointerdown", (event) => {
+    if (event.target instanceof Element && event.target.closest('[contenteditable="true"]')) {
+      return;
+    }
+    startPanelInteraction(event, panelEl, "drag");
+  });
+
+  panelEl.querySelector("[data-resize-handle]")?.addEventListener("pointerdown", (event) => {
+    startPanelInteraction(event, panelEl, "resize");
+  });
+
+  panelEl.querySelector("[data-output-node]")?.addEventListener("pointerdown", (event) => {
+    startConnectorInteraction(event, panelEl, event.currentTarget);
+  });
+
+  panelEl.querySelector("[data-delete-panel]")?.addEventListener("click", () => {
+    removeInteractivePanel(panelEl);
+  });
+
+  panelEl.querySelector("[data-image-toggle]")?.addEventListener("click", () => {
+    panelEl.classList.toggle("is-image-form-open");
+    if (panelEl.classList.contains("is-image-form-open")) {
+      panelEl.querySelector("[data-image-form] input")?.focus();
+    }
+  });
+
+  panelEl.querySelector("[data-image-form]")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const formEl = event.currentTarget;
+    const formData = new FormData(formEl);
+    const imageUrl = String(formData.get("imageUrl") || "").trim();
+    setPanelImage(panelEl, imageUrl);
+    if (imageUrl) {
+      panelEl.classList.remove("is-image-form-open");
+    }
+  });
+}
+
+function createPanelMarkup(panelId, title, meta, body, theme, left, top) {
+  return `
+    <button class="fourth-drawer__delete" type="button" aria-label="Delete panel" data-delete-panel></button>
+    <button class="fourth-drawer__image-button" type="button" aria-label="Add image" data-image-toggle></button>
+    <form class="fourth-drawer__image-form" data-image-form>
+      <input class="fourth-drawer__image-input" type="url" name="imageUrl" placeholder="Paste image URL" autocomplete="off" />
+      <button class="fourth-drawer__image-apply" type="submit">Set</button>
+    </form>
+    <span class="fourth-drawer__connector fourth-drawer__connector--acceptor" data-accept-node aria-hidden="true"></span>
+    <button class="fourth-drawer__connector fourth-drawer__connector--output" type="button" data-output-node aria-label="Start connector"></button>
+    <div class="fourth-drawer__panel-image" data-panel-image aria-hidden="true"></div>
+    <div class="fourth-drawer__panel-header" data-drag-handle>
+      <span class="fourth-drawer__panel-title" contenteditable="true" spellcheck="false">${title}</span>
+      <span class="fourth-drawer__panel-meta">${meta}</span>
+    </div>
+    <div class="fourth-drawer__panel-body" contenteditable="true" spellcheck="false">${body}</div>
+    <button class="fourth-drawer__resize" type="button" aria-label="Resize panel" data-resize-handle></button>
+  `;
+}
+
+function addInteractivePanel() {
+  const boardEl = getActiveBoardEl();
+  if (!boardEl) return;
+
+  const panelEl = document.createElement("section");
+  const panelId = `panel-${panelIdCounter}`;
+  const left = 70 + (panelIdCounter % 4) * 38;
+  const top = 80 + (panelIdCounter % 5) * 28;
+  const themeCycle = ["green", "amber", "blue"];
+  const theme = themeCycle[(panelIdCounter - 1) % themeCycle.length];
+
+  panelEl.className = "fourth-drawer__panel-card";
+  panelEl.dataset.interactivePanel = "";
+  panelEl.dataset.panelId = panelId;
+  panelEl.dataset.panelTheme = theme;
+  panelEl.style.left = `${left}px`;
+  panelEl.style.top = `${top}px`;
+  panelEl.style.width = "220px";
+  panelEl.style.height = "150px";
+  panelEl.innerHTML = createPanelMarkup(
+    panelId,
+    `Block ${panelIdCounter}`,
+    String(panelIdCounter).padStart(2, "0"),
+    "New panel added to the canvas. Drag, resize, and connect it.",
+    theme,
+    left,
+    top,
+  );
+
+  boardEl.appendChild(panelEl);
+  attachInteractivePanel(panelEl);
+  panelIdCounter += 1;
+  renderPanelConnections();
+}
+
+function removeInteractivePanel(panelEl) {
+  const panelId = panelEl.dataset.panelId;
+  const boardId = panelEl.closest("[data-board-id]")?.dataset.boardId || activeBoardId;
+  const boardPanels = getBoardPanels(boardId);
+  const boardConnectionsList = getBoardConnections(boardId);
+
+  if (panelInteraction?.panelEl === panelEl) {
+    panelInteraction = null;
+  }
+
+  if (connectorInteraction?.fromPanelId === panelId) {
+    connectorInteraction = null;
+  }
+
+  for (let index = boardConnectionsList.length - 1; index >= 0; index -= 1) {
+    if (boardConnectionsList[index].from === panelId || boardConnectionsList[index].to === panelId) {
+      boardConnectionsList.splice(index, 1);
+    }
+  }
+
+  panelEl.remove();
+  clearConnectionTargets();
+  renderPanelConnections();
+}
+
+function setPanelImage(panelEl, imageUrl) {
+  const imageEl = panelEl.querySelector("[data-panel-image]");
+  if (!imageEl) return;
+
+  if (!imageUrl) {
+    imageEl.style.backgroundImage = "";
+    panelEl.classList.remove("has-image");
+    return;
+  }
+
+  imageEl.style.backgroundImage = `url("${imageUrl}")`;
+  panelEl.classList.add("has-image");
+}
+
 function bringPanelToFront(panelEl) {
   panelZIndex += 1;
   panelEl.style.zIndex = String(panelZIndex);
 }
 
 function startPanelInteraction(event, panelEl, mode) {
-  if (!fourthWorkspaceEl) return;
+  const boardEl = panelEl.closest("[data-board-id]");
+  if (!boardEl) return;
 
-  const workspaceRect = fourthWorkspaceEl.getBoundingClientRect();
+  const workspaceRect = boardEl.getBoundingClientRect();
   const panelRect = panelEl.getBoundingClientRect();
 
   panelInteraction = {
@@ -189,6 +439,7 @@ function startPanelInteraction(event, panelEl, mode) {
     startHeight: panelRect.height,
     workspaceWidth: workspaceRect.width,
     workspaceHeight: workspaceRect.height,
+    boardId: boardEl.dataset.boardId,
   };
 
   bringPanelToFront(panelEl);
@@ -222,7 +473,7 @@ function handlePanelPointerMove(event) {
     const nextTop = clamp(startTop + deltaY, 0, workspaceHeight - panelEl.offsetHeight);
     panelEl.style.left = `${nextLeft}px`;
     panelEl.style.top = `${nextTop}px`;
-    renderPanelConnections();
+    if (panelInteraction.boardId === activeBoardId) renderPanelConnections();
     return;
   }
 
@@ -232,7 +483,7 @@ function handlePanelPointerMove(event) {
   const nextHeight = clamp(startHeight + deltaY, minHeight, workspaceHeight - startTop);
   panelEl.style.width = `${nextWidth}px`;
   panelEl.style.height = `${nextHeight}px`;
-  renderPanelConnections();
+  if (panelInteraction.boardId === activeBoardId) renderPanelConnections();
 }
 
 function endPanelInteraction(event) {
@@ -248,6 +499,7 @@ function startConnectorInteraction(event, panelEl, outputEl) {
   connectorInteraction = {
     pointerId: event.pointerId,
     fromPanelId: panelEl.dataset.panelId,
+    boardId: panelEl.closest("[data-board-id]")?.dataset.boardId || activeBoardId,
     outputEl,
     currentPoint: getWorkspacePoint(event.clientX, event.clientY),
     targetPanelId: null,
@@ -261,6 +513,7 @@ function startConnectorInteraction(event, panelEl, outputEl) {
 
 function handleConnectorPointerMove(event) {
   if (!connectorInteraction || event.pointerId !== connectorInteraction.pointerId) return;
+  if (connectorInteraction.boardId !== activeBoardId) return;
 
   connectorInteraction.currentPoint = getWorkspacePoint(event.clientX, event.clientY);
 
@@ -284,6 +537,8 @@ function handleConnectorPointerMove(event) {
 function endConnectorInteraction(event) {
   if (!connectorInteraction || event.pointerId !== connectorInteraction.pointerId) return;
 
+  const panelConnections = getBoardConnections(connectorInteraction.boardId);
+
   if (
     connectorInteraction.targetPanelId &&
     !panelConnections.some(
@@ -304,22 +559,50 @@ function endConnectorInteraction(event) {
   renderPanelConnections();
 }
 
+function createBoardTab(boardId, label) {
+  const buttonEl = document.createElement("button");
+  buttonEl.className = "fourth-drawer__board-tab";
+  buttonEl.type = "button";
+  buttonEl.dataset.boardTab = boardId;
+  buttonEl.textContent = label;
+  buttonEl.addEventListener("click", () => {
+    switchBoard(boardId);
+  });
+  return buttonEl;
+}
+
+function addBoard() {
+  if (!fourthWorkspaceEl || !fourthBoardTabsEl) return;
+
+  const boardId = `board-${boardIdCounter}`;
+  const boardLabel = `Board ${boardIdCounter}`;
+  const boardEl = document.createElement("div");
+  boardEl.className = "fourth-drawer__board";
+  boardEl.dataset.boardId = boardId;
+  boardEl.innerHTML = '<svg class="fourth-drawer__connections" aria-hidden="true"></svg>';
+  applyBoardAppearance(boardEl, { color: DEFAULT_BOARD_COLOR, image: "" });
+
+  fourthWorkspaceEl.appendChild(boardEl);
+  fourthBoardTabsEl.appendChild(createBoardTab(boardId, boardLabel));
+  getBoardConnections(boardId);
+  boardIdCounter += 1;
+  switchBoard(boardId);
+}
+
 function initInteractivePanels() {
-  if (!fourthWorkspaceEl || !interactivePanels.length) return;
+  if (!fourthWorkspaceEl) return;
 
-  interactivePanels.forEach((panelEl) => {
-    bringPanelToFront(panelEl);
-
-    panelEl.querySelector("[data-drag-handle]")?.addEventListener("pointerdown", (event) => {
-      startPanelInteraction(event, panelEl, "drag");
+  getBoardEls().forEach((boardEl) => {
+    applyBoardAppearance(boardEl, {
+      color: boardEl.dataset.boardColor || DEFAULT_BOARD_COLOR,
+      image: boardEl.dataset.boardImage || "",
     });
+  });
 
-    panelEl.querySelector("[data-resize-handle]")?.addEventListener("pointerdown", (event) => {
-      startPanelInteraction(event, panelEl, "resize");
-    });
-
-    panelEl.querySelector("[data-output-node]")?.addEventListener("pointerdown", (event) => {
-      startConnectorInteraction(event, panelEl, event.currentTarget);
+  getBoardPanels("board-1").forEach(attachInteractivePanel);
+  fourthBoardTabsEl?.querySelectorAll("[data-board-tab]").forEach((tabEl) => {
+    tabEl.addEventListener("click", () => {
+      switchBoard(tabEl.dataset.boardTab);
     });
   });
 
@@ -330,7 +613,50 @@ function initInteractivePanels() {
   window.addEventListener("pointerup", endConnectorInteraction);
   window.addEventListener("pointercancel", endConnectorInteraction);
   window.addEventListener("resize", renderPanelConnections);
+  fourthAddPanelEl?.addEventListener("click", addInteractivePanel);
+  fourthAddBoardEl?.addEventListener("click", addBoard);
+  fourthBoardTriggerEl?.addEventListener("click", () => {
+    if (fourthBoardPropertiesEl?.hidden) {
+      openBoardProperties();
+      return;
+    }
+    closeBoardProperties();
+  });
+  fourthBoardPropertiesCloseEl?.addEventListener("click", closeBoardProperties);
+  fourthBoardResetEl?.addEventListener("click", () => {
+    const boardEl = getActiveBoardEl();
+    applyBoardAppearance(boardEl, { color: DEFAULT_BOARD_COLOR, image: "" });
+    syncBoardPropertiesForm(boardEl);
+  });
+  fourthBoardColorEl?.addEventListener("input", () => {
+    if (fourthBoardColorTextEl) fourthBoardColorTextEl.value = fourthBoardColorEl.value;
+  });
+  fourthBoardColorTextEl?.addEventListener("input", () => {
+    const normalized = normalizeHexColor(fourthBoardColorTextEl.value, fourthBoardColorEl?.value || DEFAULT_BOARD_COLOR);
+    if (fourthBoardColorEl) fourthBoardColorEl.value = normalized;
+  });
+  fourthBoardPropertiesEl?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const boardEl = getActiveBoardEl();
+    if (!boardEl) return;
+    const nextColor = normalizeHexColor(fourthBoardColorTextEl?.value || fourthBoardColorEl?.value || DEFAULT_BOARD_COLOR);
+    const nextImage = String(fourthBoardImageEl?.value || "").trim();
+    applyBoardAppearance(boardEl, { color: nextColor, image: nextImage });
+    syncBoardPropertiesForm(boardEl);
+    closeBoardProperties();
+  });
+  document.addEventListener("pointerdown", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element) || !fourthBoardPropertiesEl || fourthBoardPropertiesEl.hidden) return;
+    if (target.closest("#fourthBoardProperties") || target.closest("#fourthBoardTrigger")) return;
+    closeBoardProperties();
+  });
+  fourthDrawerEl?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeBoardProperties();
+  });
+  renderBoardTabs();
   renderPanelConnections();
+  syncBoardPropertiesForm();
 }
 
 function cloneTodoDefaults() {
@@ -399,12 +725,36 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-function createTodoMarkup(item) {
+function getTodoTimestamp(item, index) {
+  const match = item.id.match(/-(\d+)$/);
+  const numericId = match ? Number(match[1]) : index + 1;
+  const minutesAgo = 4 + (numericId % 7) * 5 + index * 2;
+
+  if (minutesAgo < 60) {
+    return `${minutesAgo}m ago`;
+  }
+
+  const hoursAgo = Math.floor(minutesAgo / 60);
+  return `${hoursAgo}h ago`;
+}
+
+function createTodoMarkup(item, index, sectionName) {
   const safeText = escapeHtml(item.text);
+  const timeLabel = getTodoTimestamp(item, index);
+  const statusLabel = item.completed ? "Completed" : "Active";
+  const sourceLabel = sectionName === "completed" ? "Finished" : "Reminder";
 
   return `
     <li class="bank-drawer__todo-item${item.completed ? " is-complete" : ""}">
       <label class="bank-drawer__todo-task">
+        <span class="bank-drawer__todo-copy">
+          <span class="bank-drawer__todo-meta">
+            <span class="bank-drawer__todo-source">${sourceLabel}</span>
+            <span class="bank-drawer__todo-time">${timeLabel}</span>
+          </span>
+          <span class="bank-drawer__todo-text">${safeText}</span>
+          <span class="bank-drawer__todo-status">${statusLabel}</span>
+        </span>
         <input
           class="bank-drawer__todo-check"
           type="checkbox"
@@ -412,10 +762,95 @@ function createTodoMarkup(item) {
           data-todo-id="${item.id}"
           ${item.completed ? "checked" : ""}
         />
-        <span class="bank-drawer__todo-text">${safeText}</span>
       </label>
     </li>
   `;
+}
+
+function getTodoStackKey(groupEl) {
+  const listName = groupEl.closest("[data-todo-list]")?.dataset.todoList || "todo";
+  return `${listName}:${groupEl.dataset.taskStack || "stack"}`;
+}
+
+function setTaskStackExpanded(groupEl, expanded) {
+  const key = getTodoStackKey(groupEl);
+  todoStackState.set(key, expanded);
+  applyTaskStackState(groupEl);
+}
+
+function applyTaskStackState(groupEl) {
+  const listEl = groupEl.querySelector(".bank-drawer__todo-list");
+  const toggleEl = groupEl.querySelector("[data-stack-toggle]");
+  const summaryEl = groupEl.querySelector("[data-stack-summary]");
+  const items = Array.from(groupEl.querySelectorAll(".bank-drawer__todo-item"));
+  const key = getTodoStackKey(groupEl);
+  const expanded = todoStackState.get(key) === true;
+  const hasOverflow = items.length > STACKED_VISIBLE_TASKS;
+
+  groupEl.classList.toggle("has-stack-overflow", hasOverflow);
+  groupEl.classList.toggle("is-expanded", expanded && hasOverflow);
+  toggleEl?.setAttribute("aria-expanded", String(expanded && hasOverflow));
+
+  if (summaryEl) {
+    if (!hasOverflow) {
+      summaryEl.textContent = items.length ? `${items.length} shown` : "No items";
+    } else {
+      summaryEl.textContent = expanded ? "Tap to collapse" : `+${items.length - STACKED_VISIBLE_TASKS} more`;
+    }
+  }
+
+  items.forEach((itemEl, index) => {
+    let overlap = 0;
+    let lift = 0;
+    let scale = 1;
+    let opacity = 1;
+
+    if (!expanded && hasOverflow) {
+      if (index === 2) {
+        overlap = -8;
+        lift = -2;
+        scale = 0.985;
+        opacity = 0.98;
+      } else if (index === 3) {
+        overlap = -34;
+        lift = -10;
+        scale = 0.95;
+        opacity = 0.84;
+      } else if (index === 4) {
+        overlap = -56;
+        lift = -16;
+        scale = 0.91;
+        opacity = 0.68;
+      } else if (index >= 5) {
+        overlap = -72;
+        lift = -20;
+        scale = 0.88;
+        opacity = 0.5;
+      }
+    }
+
+    itemEl.style.setProperty("--stack-overlap", `${overlap}px`);
+    itemEl.style.setProperty("--stack-lift", `${lift}px`);
+    itemEl.style.setProperty("--stack-scale", String(scale));
+    itemEl.style.setProperty("--stack-opacity", String(opacity));
+    itemEl.style.setProperty("--stack-z", String(Math.max(1, 30 - index)));
+  });
+
+  if (listEl) {
+    if (!hasOverflow) {
+      listEl.style.maxHeight = "none";
+      listEl.scrollTop = 0;
+      return;
+    }
+
+    if (expanded) {
+      listEl.style.maxHeight = `${Math.min(360, Math.max(236, items.length * 92))}px`;
+      return;
+    }
+
+    listEl.style.maxHeight = "212px";
+    listEl.scrollTop = 0;
+  }
 }
 
 function renderTodoList(listEl) {
@@ -433,15 +868,17 @@ function renderTodoList(listEl) {
 
   if (activeEl) {
     activeEl.innerHTML = activeItems.length
-      ? activeItems.map(createTodoMarkup).join("")
+      ? activeItems.map((item, index) => createTodoMarkup(item, index, "active")).join("")
       : '<li><p class="bank-drawer__todo-empty">Nothing here yet. Add your next task above.</p></li>';
   }
 
   if (completedEl) {
     completedEl.innerHTML = completedItems.length
-      ? completedItems.map(createTodoMarkup).join("")
+      ? completedItems.map((item, index) => createTodoMarkup(item, index, "completed")).join("")
       : '<li><p class="bank-drawer__todo-empty bank-drawer__todo-empty--completed">Completed tasks will show up here.</p></li>';
   }
+
+  listEl.querySelectorAll("[data-task-stack]").forEach(applyTaskStackState);
 }
 
 function renderTodoLists() {
@@ -505,6 +942,41 @@ function initTodoLists() {
       }
 
       setTodoCompleted(listName, target.dataset.todoId, target.checked);
+    });
+
+    listEl.querySelectorAll("[data-task-stack]").forEach((groupEl) => {
+      const toggleEl = groupEl.querySelector("[data-stack-toggle]");
+      const stackListEl = groupEl.querySelector(".bank-drawer__todo-list");
+
+      toggleEl?.addEventListener("click", () => {
+        setTaskStackExpanded(groupEl, !(todoStackState.get(getTodoStackKey(groupEl)) === true));
+      });
+
+      stackListEl?.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        if (target.closest("[data-todo-check]")) return;
+        if (
+          groupEl.classList.contains("has-stack-overflow") &&
+          !groupEl.classList.contains("is-expanded")
+        ) {
+          setTaskStackExpanded(groupEl, true);
+        }
+      });
+
+      stackListEl?.addEventListener(
+        "wheel",
+        (event) => {
+          if (
+            groupEl.classList.contains("has-stack-overflow") &&
+            !groupEl.classList.contains("is-expanded")
+          ) {
+            event.preventDefault();
+            setTaskStackExpanded(groupEl, true);
+          }
+        },
+        { passive: false },
+      );
     });
   });
 }

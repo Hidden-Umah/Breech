@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fourth Slider</title>
+    <style>
+      :root {
+        --bg: #040706;
+        --panel: rgba(6, 10, 8, 0.94);
+        --text: #f5fff7;
+        --muted: rgba(245, 255, 247, 0.64);
+        --accent: #4ade80;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg);
+      }
+
+      body {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+      }
+
+      .fourth-page {
+        min-height: 100vh;
+        min-height: 100dvh;
+        background:
+          radial-gradient(circle at top left, rgba(74, 222, 128, 0.14), transparent 22%),
+          radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 22%),
+          linear-gradient(180deg, rgba(6, 10, 8, 0.98), rgba(1, 3, 2, 0.99));
+      }
+
+      .fourth-shell {
+        position: relative;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow: hidden;
+        background: var(--panel);
+      }
+
+      .fourth-workspace {
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 18% 18%, rgba(74, 222, 128, 0.08), transparent 22%),
+          radial-gradient(circle at 82% 24%, rgba(96, 165, 250, 0.08), transparent 22%),
+          linear-gradient(180deg, rgba(8, 14, 11, 0.96), rgba(4, 8, 6, 0.98));
+        background-color: #08110d;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        cursor: grab;
+      }
+
+      .fourth-workspace.is-panning {
+        cursor: grabbing;
+      }
+
+      .fourth-drawer__board-bar {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .fourth-drawer__board-tabs {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .fourth-drawer__board-tab,
+      .fourth-drawer__board-create,
+      .fourth-drawer__add,
+      .fourth-drawer__board-trigger,
+      .fourth-drawer__board-action {
+        border: 0;
+        border-radius: 999px;
+        font: inherit;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .fourth-drawer__board-tab,
+      .fourth-drawer__board-create {
+        height: 34px;
+        padding: 0 14px;
+        font-size: 0.74rem;
+        font-weight: 700;
+      }
+
+      .fourth-drawer__board-tab {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(245, 255, 247, 0.82);
+      }
+
+      .fourth-drawer__board-tab.is-active {
+        background: linear-gradient(135deg, #9bffb5, #4ade80);
+        color: #06210d;
+      }
+
+      .fourth-drawer__board-create {
+        background: rgba(147, 197, 253, 0.16);
+        color: #dbeafe;
+      }
+
+      .fourth-drawer__board {
+        position: absolute;
+        inset: 0;
+        display: none;
+        background: transparent;
+        overflow: visible;
+        transform: translate(var(--board-pan-x, 0px), var(--board-pan-y, 0px)) scale(var(--board-zoom, 1));
+        transform-origin: center center;
+        transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .fourth-drawer__board.is-active {
+        display: block;
+      }
+
+      .fourth-drawer__board.is-interacting {
+        transition: none;
+      }
+
+      .fourth-drawer__zoom {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 999px;
+        background: rgba(5, 10, 8, 0.78);
+        border: 1px solid rgba(180, 255, 201, 0.1);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      .fourth-drawer__zoom-button,
+      .fourth-drawer__zoom-readout {
+        height: 34px;
+        border: 0;
+        border-radius: 999px;
+        font: inherit;
+      }
+
+      .fourth-drawer__zoom-button {
+        min-width: 34px;
+        padding: 0 12px;
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(245, 255, 247, 0.88);
+        cursor: pointer;
+      }
+
+      .fourth-drawer__zoom-readout {
+        min-width: 74px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(245, 255, 247, 0.72);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .fourth-drawer__add {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        z-index: 4;
+        min-width: 88px;
+        height: 34px;
+        padding: 0 14px;
+        background: linear-gradient(135deg, #9bffb5, #4ade80);
+        color: #06210d;
+        font-size: 0.78rem;
+        font-weight: 700;
+        box-shadow: 0 10px 24px rgba(74, 222, 128, 0.22);
+      }
+
+      .fourth-drawer__board-trigger {
+        position: absolute;
+        top: 60px;
+        right: 18px;
+        z-index: 4;
+        min-width: 88px;
+        height: 30px;
+        padding: 0 12px;
+        background: rgba(147, 197, 253, 0.16);
+        color: #dbeafe;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
+      .fourth-drawer__board-properties {
+        position: absolute;
+        top: 98px;
+        right: 18px;
+        z-index: 4;
+        width: min(280px, calc(100% - 36px));
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(10, 18, 14, 0.92), rgba(5, 8, 7, 0.96));
+        border: 1px solid rgba(180, 255, 201, 0.14);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow:
+          0 16px 34px rgba(0, 0, 0, 0.28),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+
+      .fourth-drawer__board-properties[hidden] {
+        display: none;
+      }
+
+      .fourth-drawer__board-properties-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .fourth-drawer__board-properties-title {
+        margin: 0;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .fourth-drawer__board-properties-copy {
+        margin: 4px 0 0;
+        font-size: 0.76rem;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+
+      .fourth-drawer__board-properties-close {
+        width: 26px;
+        height: 26px;
+        border: 0;
+        border-radius: 50%;
+        padding: 0;
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(245, 255, 247, 0.74);
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .fourth-drawer__board-properties-group {
+        display: grid;
+        gap: 8px;
+      }
+
+      .fourth-drawer__board-properties-label {
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(245, 255, 247, 0.44);
+      }
+
+      .fourth-drawer__board-properties-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+      }
+
+      .fourth-drawer__board-color {
+        width: 42px;
+        height: 36px;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+      }
+
+      .fourth-drawer__board-input {
+        width: 100%;
+        min-width: 0;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        background: rgba(8, 12, 10, 0.88);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.78rem;
+      }
+
+      .fourth-drawer__board-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .fourth-drawer__board-action {
+        height: 34px;
+        padding: 0 12px;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
+      .fourth-drawer__board-action--ghost {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(245, 255, 247, 0.78);
+      }
+
+      .fourth-drawer__board-action--apply {
+        background: linear-gradient(135deg, #9bffb5, #4ade80);
+        color: #06210d;
+      }
+
+      .fourth-drawer__connections {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: auto;
+        overflow: visible;
+      }
+
+      .fourth-drawer__connection-line {
+        fill: none;
+        stroke: rgba(180, 255, 201, 0.72);
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.22));
+        cursor: pointer;
+      }
+
+      .fourth-drawer__connection-line:hover {
+        stroke: rgba(255, 135, 135, 0.92);
+        stroke-width: 3.5;
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.28));
+      }
+
+      .fourth-drawer__panel-card {
+        position: absolute;
+        min-width: 140px;
+        min-height: 110px;
+        display: flex;
+        flex-direction: column;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow:
+          0 12px 26px rgba(0, 0, 0, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        overflow: hidden;
+        user-select: none;
+        touch-action: none;
+      }
+
+      .fourth-drawer__panel-card[data-panel-theme="green"] {
+        background: linear-gradient(180deg, rgba(74, 222, 128, 0.18), rgba(9, 20, 12, 0.22));
+      }
+
+      .fourth-drawer__panel-card[data-panel-theme="amber"] {
+        background: linear-gradient(180deg, rgba(245, 158, 11, 0.16), rgba(24, 15, 4, 0.2));
+      }
+
+      .fourth-drawer__panel-card[data-panel-theme="blue"] {
+        background: linear-gradient(180deg, rgba(96, 165, 250, 0.18), rgba(7, 12, 20, 0.24));
+      }
+
+      .fourth-drawer__panel-card[data-panel-theme="violet"] {
+        background: linear-gradient(180deg, rgba(168, 85, 247, 0.18), rgba(18, 8, 28, 0.24));
+      }
+
+      .fourth-drawer__panel-card.is-connection-target {
+        box-shadow:
+          0 0 0 2px rgba(180, 255, 201, 0.22),
+          0 12px 26px rgba(0, 0, 0, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+
+      .fourth-drawer__panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px 8px;
+        cursor: grab;
+      }
+
+      .fourth-drawer__panel-card.is-dragging .fourth-drawer__panel-header {
+        cursor: grabbing;
+      }
+
+      .fourth-drawer__panel-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .fourth-drawer__panel-title[contenteditable="true"],
+      .fourth-drawer__panel-body[contenteditable="true"] {
+        user-select: text;
+        cursor: text;
+      }
+
+      .fourth-drawer__panel-title[contenteditable="true"]:focus,
+      .fourth-drawer__panel-body[contenteditable="true"]:focus {
+        outline: 1px dashed rgba(255, 255, 255, 0.28);
+        outline-offset: 2px;
+      }
+
+      .fourth-drawer__panel-meta {
+        font-size: 0.72rem;
+        color: rgba(245, 255, 247, 0.6);
+      }
+
+      .fourth-drawer__panel-body {
+        padding: 0 14px 38px;
+        font-size: 0.88rem;
+        line-height: 1.45;
+        color: rgba(245, 255, 247, 0.82);
+        flex: 1 1 auto;
+      }
+
+      .fourth-drawer__panel-image {
+        display: none;
+        width: 100%;
+        height: 50%;
+        min-height: 64px;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .fourth-drawer__panel-card.has-image .fourth-drawer__panel-image {
+        display: block;
+      }
+
+      .fourth-drawer__delete,
+      .fourth-drawer__image-button,
+      .fourth-drawer__color-button {
+        position: absolute;
+        bottom: 10px;
+        z-index: 3;
+        width: 14px;
+        height: 14px;
+        border: 0;
+        padding: 0;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .fourth-drawer__delete {
+        left: 10px;
+        background: linear-gradient(135deg, #ff8a8a, #ef4444);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+
+      .fourth-drawer__image-button {
+        left: 32px;
+        background: linear-gradient(135deg, #93c5fd, #2563eb);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      }
+
+      .fourth-drawer__color-button {
+        left: 54px;
+        background: linear-gradient(135deg, #e9d5ff, #8b5cf6);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+      }
+
+      .fourth-drawer__image-form {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 34px;
+        z-index: 3;
+        display: none;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+      }
+
+      .fourth-drawer__panel-card.is-image-form-open .fourth-drawer__image-form {
+        display: grid;
+      }
+
+      .fourth-drawer__image-input {
+        width: 100%;
+        min-width: 0;
+        height: 32px;
+        padding: 0 10px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 10px;
+        background: rgba(8, 12, 10, 0.88);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.76rem;
+      }
+
+      .fourth-drawer__image-apply {
+        height: 32px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #93c5fd, #2563eb);
+        color: #07111f;
+        font: inherit;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .fourth-drawer__connector {
+        position: absolute;
+        top: 50%;
+        width: 12px;
+        height: 44px;
+        border: 0;
+        padding: 0;
+        transform: translateY(-50%);
+        z-index: 2;
+      }
+
+      .fourth-drawer__connector--acceptor {
+        left: -6px;
+        border-radius: 999px 0 0 999px;
+        background: linear-gradient(180deg, rgba(180, 255, 201, 0.78), rgba(74, 222, 128, 0.34));
+        box-shadow:
+          0 0 0 4px rgba(74, 222, 128, 0.06),
+          0 0 10px rgba(74, 222, 128, 0.16);
+      }
+
+      .fourth-drawer__connector--output {
+        right: -6px;
+        border-radius: 0 999px 999px 0;
+        background: linear-gradient(180deg, #9bffb5, #4ade80);
+        cursor: crosshair;
+        box-shadow:
+          0 0 0 4px rgba(74, 222, 128, 0.08),
+          0 0 12px rgba(74, 222, 128, 0.18);
+      }
+
+      .fourth-drawer__resize {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        width: 16px;
+        height: 16px;
+        border: 0;
+        padding: 0;
+        background:
+          linear-gradient(135deg, transparent 0 45%, rgba(255, 255, 255, 0.82) 45% 58%, transparent 58% 100%);
+        opacity: 0.72;
+        cursor: nwse-resize;
+      }
+
+      @media (max-width: 780px) {
+        .fourth-shell,
+        .fourth-workspace {
+          min-height: 100vh;
+          min-height: 100dvh;
+        }
+
+        .fourth-drawer__board-bar {
+          left: 12px;
+          right: 112px;
+          flex-wrap: wrap;
+        }
+
+        .fourth-drawer__add,
+        .fourth-drawer__board-trigger {
+          right: 12px;
+        }
+
+        .fourth-drawer__board-properties {
+          right: 12px;
+          width: min(280px, calc(100% - 24px));
+        }
+
+        .fourth-drawer__zoom {
+          right: 12px;
+          bottom: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="fourth-page">
+      <section class="fourth-shell">
+        <div class="fourth-workspace" id="fourthWorkspace">
+          <div class="fourth-drawer__board-bar">
+            <div class="fourth-drawer__board-tabs" id="fourthBoardTabs">
+              <button class="fourth-drawer__board-tab is-active" type="button" data-board-tab="board-1">Board 1</button>
+            </div>
+            <button class="fourth-drawer__board-create" id="fourthAddBoard" type="button">New Board</button>
+          </div>
+
+          <button class="fourth-drawer__add" id="fourthAddPanel" type="button">Add</button>
+          <button class="fourth-drawer__board-trigger" id="fourthBoardTrigger" type="button">Board</button>
+
+          <form class="fourth-drawer__board-properties" id="fourthBoardProperties" hidden>
+            <div class="fourth-drawer__board-properties-header">
+              <div>
+                <h3 class="fourth-drawer__board-properties-title">Board Properties</h3>
+                <p class="fourth-drawer__board-properties-copy">Adjust the active board background color or set a full-screen image.</p>
+              </div>
+              <button class="fourth-drawer__board-properties-close" id="fourthBoardPropertiesClose" type="button" aria-label="Close board properties">×</button>
+            </div>
+            <div class="fourth-drawer__board-properties-group">
+              <label class="fourth-drawer__board-properties-label" for="fourthBoardColor">Background Color</label>
+              <div class="fourth-drawer__board-properties-row">
+                <input class="fourth-drawer__board-color" id="fourthBoardColor" name="boardColor" type="color" value="#08110d" />
+                <input class="fourth-drawer__board-input" id="fourthBoardColorText" name="boardColorText" type="text" value="#08110d" spellcheck="false" />
+              </div>
+            </div>
+            <div class="fourth-drawer__board-properties-group">
+              <label class="fourth-drawer__board-properties-label" for="fourthBoardImage">Background Image</label>
+              <input class="fourth-drawer__board-input" id="fourthBoardImage" name="boardImage" type="url" placeholder="Paste image URL" autocomplete="off" />
+            </div>
+            <div class="fourth-drawer__board-actions">
+              <button class="fourth-drawer__board-action fourth-drawer__board-action--ghost" id="fourthBoardReset" type="button">Reset</button>
+              <button class="fourth-drawer__board-action fourth-drawer__board-action--apply" type="submit">Apply</button>
+            </div>
+          </form>
+
+          <div class="fourth-drawer__zoom" aria-label="Board zoom controls">
+            <button class="fourth-drawer__zoom-button" id="zoomOutButton" type="button">-</button>
+            <span class="fourth-drawer__zoom-readout" id="zoomReadout">100%</span>
+            <button class="fourth-drawer__zoom-button" id="zoomInButton" type="button">+</button>
+          </div>
+
+          <div class="fourth-drawer__board is-active" data-board-id="board-1">
+            <svg class="fourth-drawer__connections" aria-hidden="true"></svg>
+
+            <section
+              class="fourth-drawer__panel-card"
+              data-interactive-panel
+              data-panel-id="panel-1"
+              data-panel-theme="green"
+              style="left: 42px; top: 68px; width: 260px; height: 170px;"
+            >
+              <button class="fourth-drawer__delete" type="button" aria-label="Delete panel" data-delete-panel></button>
+              <button class="fourth-drawer__image-button" type="button" aria-label="Add image" data-image-toggle></button>
+              <button class="fourth-drawer__color-button" type="button" aria-label="Change panel color" data-color-toggle></button>
+              <form class="fourth-drawer__image-form" data-image-form>
+                <input class="fourth-drawer__image-input" type="url" name="imageUrl" placeholder="Paste image URL" autocomplete="off" />
+                <button class="fourth-drawer__image-apply" type="submit">Set</button>
+              </form>
+              <span class="fourth-drawer__connector fourth-drawer__connector--acceptor" data-accept-node aria-hidden="true"></span>
+              <button class="fourth-drawer__connector fourth-drawer__connector--output" type="button" data-output-node aria-label="Start connector"></button>
+              <div class="fourth-drawer__panel-image" data-panel-image aria-hidden="true"></div>
+              <div class="fourth-drawer__panel-header" data-drag-handle>
+                <span class="fourth-drawer__panel-title" contenteditable="true" spellcheck="false">Ideas</span>
+                <span class="fourth-drawer__panel-meta">01</span>
+              </div>
+              <div class="fourth-drawer__panel-body" contenteditable="true" spellcheck="false">Drop notes, references, or components here and arrange them however you want.</div>
+              <button class="fourth-drawer__resize" type="button" aria-label="Resize panel" data-resize-handle></button>
+            </section>
+
+            <section
+              class="fourth-drawer__panel-card"
+              data-interactive-panel
+              data-panel-id="panel-2"
+              data-panel-theme="amber"
+              style="left: 346px; top: 142px; width: 240px; height: 150px;"
+            >
+              <button class="fourth-drawer__delete" type="button" aria-label="Delete panel" data-delete-panel></button>
+              <button class="fourth-drawer__image-button" type="button" aria-label="Add image" data-image-toggle></button>
+              <button class="fourth-drawer__color-button" type="button" aria-label="Change panel color" data-color-toggle></button>
+              <form class="fourth-drawer__image-form" data-image-form>
+                <input class="fourth-drawer__image-input" type="url" name="imageUrl" placeholder="Paste image URL" autocomplete="off" />
+                <button class="fourth-drawer__image-apply" type="submit">Set</button>
+              </form>
+              <span class="fourth-drawer__connector fourth-drawer__connector--acceptor" data-accept-node aria-hidden="true"></span>
+              <button class="fourth-drawer__connector fourth-drawer__connector--output" type="button" data-output-node aria-label="Start connector"></button>
+              <div class="fourth-drawer__panel-image" data-panel-image aria-hidden="true"></div>
+              <div class="fourth-drawer__panel-header" data-drag-handle>
+                <span class="fourth-drawer__panel-title" contenteditable="true" spellcheck="false">Notes</span>
+                <span class="fourth-drawer__panel-meta">02</span>
+              </div>
+              <div class="fourth-drawer__panel-body" contenteditable="true" spellcheck="false">This page is intentionally blank aside from movable panels you can shape into a layout.</div>
+              <button class="fourth-drawer__resize" type="button" aria-label="Resize panel" data-resize-handle></button>
+            </section>
+
+            <section
+              class="fourth-drawer__panel-card"
+              data-interactive-panel
+              data-panel-id="panel-3"
+              data-panel-theme="blue"
+              style="left: 618px; top: 86px; width: 250px; height: 158px;"
+            >
+              <button class="fourth-drawer__delete" type="button" aria-label="Delete panel" data-delete-panel></button>
+              <button class="fourth-drawer__image-button" type="button" aria-label="Add image" data-image-toggle></button>
+              <button class="fourth-drawer__color-button" type="button" aria-label="Change panel color" data-color-toggle></button>
+              <form class="fourth-drawer__image-form" data-image-form>
+                <input class="fourth-drawer__image-input" type="url" name="imageUrl" placeholder="Paste image URL" autocomplete="off" />
+                <button class="fourth-drawer__image-apply" type="submit">Set</button>
+              </form>
+              <span class="fourth-drawer__connector fourth-drawer__connector--acceptor" data-accept-node aria-hidden="true"></span>
+              <button class="fourth-drawer__connector fourth-drawer__connector--output" type="button" data-output-node aria-label="Start connector"></button>
+              <div class="fourth-drawer__panel-image" data-panel-image aria-hidden="true"></div>
+              <div class="fourth-drawer__panel-header" data-drag-handle>
+                <span class="fourth-drawer__panel-title" contenteditable="true" spellcheck="false">Canvas</span>
+                <span class="fourth-drawer__panel-meta">03</span>
+              </div>
+              <div class="fourth-drawer__panel-body" contenteditable="true" spellcheck="false">Resize this one larger or smaller and move it around to test the interaction.</div>
+              <button class="fourth-drawer__resize" type="button" aria-label="Resize panel" data-resize-handle></button>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const fourthWorkspaceEl = document.getElementById("fourthWorkspace");
+      const fourthAddPanelEl = document.getElementById("fourthAddPanel");
+      const fourthBoardTriggerEl = document.getElementById("fourthBoardTrigger");
+      const fourthBoardTabsEl = document.getElementById("fourthBoardTabs");
+      const fourthAddBoardEl = document.getElementById("fourthAddBoard");
+      const fourthBoardPropertiesEl = document.getElementById("fourthBoardProperties");
+      const fourthBoardPropertiesCloseEl = document.getElementById("fourthBoardPropertiesClose");
+      const fourthBoardColorEl = document.getElementById("fourthBoardColor");
+      const fourthBoardColorTextEl = document.getElementById("fourthBoardColorText");
+      const fourthBoardImageEl = document.getElementById("fourthBoardImage");
+      const fourthBoardResetEl = document.getElementById("fourthBoardReset");
+      const zoomOutButtonEl = document.getElementById("zoomOutButton");
+      const zoomInButtonEl = document.getElementById("zoomInButton");
+      const zoomReadoutEl = document.getElementById("zoomReadout");
+      const DEFAULT_BOARD_COLOR = "#08110d";
+      const PANEL_THEMES = ["green", "amber", "blue", "violet"];
+      const MIN_ZOOM = 0.3;
+      const MAX_ZOOM = 2.2;
+      const ZOOM_STEP = 0.1;
+
+      let panelInteraction = null;
+      let panelZIndex = 5;
+      let connectorInteraction = null;
+      let boardPanInteraction = null;
+      let activeBoardId = "board-1";
+      let boardIdCounter = 2;
+      let panelIdCounter = document.querySelectorAll("[data-interactive-panel]").length + 1;
+      const boardConnections = new Map([["board-1", []]]);
+      const boardViewState = new Map([["board-1", { panX: 0, panY: 0, zoom: 1 }]]);
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function getBoardEls() {
+        return Array.from(document.querySelectorAll("[data-board-id]"));
+      }
+
+      function getBoardEl(boardId = activeBoardId) {
+        return document.querySelector(`[data-board-id="${boardId}"]`);
+      }
+
+      function getActiveBoardEl() {
+        return getBoardEl(activeBoardId);
+      }
+
+      function getBoardView(boardId = activeBoardId) {
+        if (!boardViewState.has(boardId)) {
+          boardViewState.set(boardId, { panX: 0, panY: 0, zoom: 1 });
+        }
+        return boardViewState.get(boardId);
+      }
+
+      function renderBoardView(boardId = activeBoardId, smooth = true) {
+        const boardEl = getBoardEl(boardId);
+        if (!boardEl) return;
+        const view = getBoardView(boardId);
+        boardEl.style.setProperty("--board-pan-x", `${view.panX}px`);
+        boardEl.style.setProperty("--board-pan-y", `${view.panY}px`);
+        boardEl.style.setProperty("--board-zoom", String(view.zoom));
+        boardEl.classList.toggle("is-interacting", !smooth);
+
+        if (boardId === activeBoardId && zoomReadoutEl) {
+          zoomReadoutEl.textContent = `${Math.round(view.zoom * 100)}%`;
+        }
+
+        renderPanelConnections();
+      }
+
+      function setBoardZoom(nextZoom, boardId = activeBoardId) {
+        const view = getBoardView(boardId);
+        view.zoom = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM);
+        renderBoardView(boardId, true);
+      }
+
+      function normalizeHexColor(value, fallback = DEFAULT_BOARD_COLOR) {
+        const trimmed = String(value || "").trim();
+        return /^#([0-9a-fA-F]{6})$/.test(trimmed) ? trimmed : fallback;
+      }
+
+      function applyBoardAppearance(boardEl, options = {}) {
+        if (!boardEl) return;
+        const nextColor = normalizeHexColor(options.color || boardEl.dataset.boardColor || DEFAULT_BOARD_COLOR);
+        const nextImage = String(options.image ?? boardEl.dataset.boardImage ?? "").trim();
+
+        boardEl.dataset.boardColor = nextColor;
+        boardEl.dataset.boardImage = nextImage;
+
+        if (boardEl.dataset.boardId === activeBoardId && fourthWorkspaceEl) {
+          fourthWorkspaceEl.style.backgroundColor = nextColor;
+          fourthWorkspaceEl.style.backgroundImage = nextImage
+            ? `linear-gradient(180deg, rgba(4, 8, 6, 0.42), rgba(4, 8, 6, 0.68)), url("${nextImage}")`
+            : "";
+        }
+      }
+
+      function syncBoardPropertiesForm(boardEl = getActiveBoardEl()) {
+        if (!boardEl || !fourthBoardPropertiesEl) return;
+        const boardColor = normalizeHexColor(boardEl.dataset.boardColor || DEFAULT_BOARD_COLOR);
+        const boardImage = String(boardEl.dataset.boardImage || "");
+
+        fourthBoardColorEl.value = boardColor;
+        fourthBoardColorTextEl.value = boardColor;
+        fourthBoardImageEl.value = boardImage;
+      }
+
+      function openBoardProperties() {
+        syncBoardPropertiesForm();
+        fourthBoardPropertiesEl.hidden = false;
+      }
+
+      function closeBoardProperties() {
+        fourthBoardPropertiesEl.hidden = true;
+      }
+
+      function getBoardConnections(boardId = activeBoardId) {
+        if (!boardConnections.has(boardId)) {
+          boardConnections.set(boardId, []);
+        }
+        return boardConnections.get(boardId);
+      }
+
+      function getBoardPanels(boardId = activeBoardId) {
+        return Array.from(getBoardEl(boardId)?.querySelectorAll("[data-interactive-panel]") || []);
+      }
+
+      function getBoardConnectionsEl(boardId = activeBoardId) {
+        return getBoardEl(boardId)?.querySelector(".fourth-drawer__connections") || null;
+      }
+
+      function renderBoardTabs() {
+        Array.from(fourthBoardTabsEl.querySelectorAll("[data-board-tab]")).forEach((tabEl) => {
+          tabEl.classList.toggle("is-active", tabEl.dataset.boardTab === activeBoardId);
+        });
+      }
+
+      function switchBoard(boardId) {
+        activeBoardId = boardId;
+        getBoardEls().forEach((boardEl) => {
+          boardEl.classList.toggle("is-active", boardEl.dataset.boardId === boardId);
+        });
+        applyBoardAppearance(getActiveBoardEl(), {});
+        renderBoardView(boardId, true);
+        renderBoardTabs();
+        clearConnectionTargets();
+        renderPanelConnections();
+        syncBoardPropertiesForm();
+      }
+
+      function getWorkspacePoint(clientX, clientY) {
+        const boardEl = getActiveBoardEl();
+        if (!boardEl) return { x: 0, y: 0 };
+        const view = getBoardView(boardEl.dataset.boardId);
+        const rect = boardEl.getBoundingClientRect();
+        return {
+          x: (clientX - rect.left) / view.zoom,
+          y: (clientY - rect.top) / view.zoom,
+        };
+      }
+
+      function getElementPositionWithinBoard(elementEl, boardEl) {
+        let currentEl = elementEl;
+        let x = 0;
+        let y = 0;
+
+        while (currentEl && currentEl !== boardEl) {
+          x += currentEl.offsetLeft;
+          y += currentEl.offsetTop;
+          currentEl = currentEl.offsetParent;
+        }
+
+        return { x, y };
+      }
+
+      function getNodeCenter(nodeEl) {
+        const boardEl = nodeEl?.closest?.("[data-board-id]");
+        if (!nodeEl || !boardEl) return { x: 0, y: 0 };
+        const position = getElementPositionWithinBoard(nodeEl, boardEl);
+        return {
+          x: position.x + nodeEl.offsetWidth / 2,
+          y: position.y + nodeEl.offsetHeight / 2,
+        };
+      }
+
+      function buildConnectionPath(startPoint, endPoint) {
+        const controlOffset = Math.max(60, Math.abs(endPoint.x - startPoint.x) * 0.45);
+        return `M ${startPoint.x} ${startPoint.y} C ${startPoint.x + controlOffset} ${startPoint.y}, ${endPoint.x - controlOffset} ${endPoint.y}, ${endPoint.x} ${endPoint.y}`;
+      }
+
+      function clearConnectionTargets() {
+        getBoardPanels().forEach((panelEl) => panelEl.classList.remove("is-connection-target"));
+      }
+
+      function renderPanelConnections() {
+        const fourthConnectionsEl = getBoardConnectionsEl();
+        if (!fourthConnectionsEl) return;
+
+        fourthConnectionsEl.innerHTML = "";
+        const panels = getBoardPanels();
+        const panelConnections = getBoardConnections();
+
+        panelConnections.forEach((connection, index) => {
+          const fromPanel = panels.find((panelEl) => panelEl.dataset.panelId === connection.from);
+          const toPanel = panels.find((panelEl) => panelEl.dataset.panelId === connection.to);
+          if (!fromPanel || !toPanel) return;
+
+          const startPoint = getNodeCenter(fromPanel.querySelector("[data-output-node]"));
+          const endPoint = getNodeCenter(toPanel.querySelector("[data-accept-node]"));
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("class", "fourth-drawer__connection-line");
+          path.setAttribute("d", buildConnectionPath(startPoint, endPoint));
+          path.addEventListener("click", () => {
+            panelConnections.splice(index, 1);
+            renderPanelConnections();
+          });
+          fourthConnectionsEl.appendChild(path);
+        });
+
+        if (connectorInteraction) {
+          const startPoint = getNodeCenter(connectorInteraction.outputEl);
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("class", "fourth-drawer__connection-line");
+          path.setAttribute("d", buildConnectionPath(startPoint, connectorInteraction.currentPoint));
+          path.setAttribute("stroke-dasharray", "6 6");
+          fourthConnectionsEl.appendChild(path);
+        }
+      }
+
+      function bringPanelToFront(panelEl) {
+        panelZIndex += 1;
+        panelEl.style.zIndex = String(panelZIndex);
+      }
+
+      function setPanelImage(panelEl, imageUrl) {
+        const imageEl = panelEl.querySelector("[data-panel-image]");
+        if (!imageEl) return;
+
+        if (!imageUrl) {
+          imageEl.style.backgroundImage = "";
+          panelEl.classList.remove("has-image");
+          return;
+        }
+
+        imageEl.style.backgroundImage = `url("${imageUrl}")`;
+        panelEl.classList.add("has-image");
+      }
+
+      function cyclePanelTheme(panelEl) {
+        const currentTheme = panelEl.dataset.panelTheme || PANEL_THEMES[0];
+        const currentIndex = PANEL_THEMES.indexOf(currentTheme);
+        const nextTheme = PANEL_THEMES[(currentIndex + 1 + PANEL_THEMES.length) % PANEL_THEMES.length];
+        panelEl.dataset.panelTheme = nextTheme;
+      }
+
+      function removeInteractivePanel(panelEl) {
+        const panelId = panelEl.dataset.panelId;
+        const boardId = panelEl.closest("[data-board-id]")?.dataset.boardId || activeBoardId;
+        const boardConnectionsList = getBoardConnections(boardId);
+
+        if (panelInteraction?.panelEl === panelEl) {
+          panelInteraction = null;
+        }
+
+        if (connectorInteraction?.fromPanelId === panelId) {
+          connectorInteraction = null;
+        }
+
+        for (let index = boardConnectionsList.length - 1; index >= 0; index -= 1) {
+          if (boardConnectionsList[index].from === panelId || boardConnectionsList[index].to === panelId) {
+            boardConnectionsList.splice(index, 1);
+          }
+        }
+
+        panelEl.remove();
+        clearConnectionTargets();
+        renderPanelConnections();
+      }
+
+      function startPanelInteraction(event, panelEl, mode) {
+        const boardEl = panelEl.closest("[data-board-id]");
+        if (!boardEl) return;
+        const pointer = getWorkspacePoint(event.clientX, event.clientY);
+
+        panelInteraction = {
+          mode,
+          pointerId: event.pointerId,
+          panelEl,
+          startX: pointer.x,
+          startY: pointer.y,
+          startLeft: panelEl.offsetLeft,
+          startTop: panelEl.offsetTop,
+          startWidth: panelEl.offsetWidth,
+          startHeight: panelEl.offsetHeight,
+          boardId: boardEl.dataset.boardId,
+        };
+
+        bringPanelToFront(panelEl);
+        panelEl.classList.add("is-dragging");
+        panelEl.setPointerCapture?.(event.pointerId);
+        renderPanelConnections();
+        event.preventDefault();
+      }
+
+      function handlePanelPointerMove(event) {
+        if (!panelInteraction || event.pointerId !== panelInteraction.pointerId) return;
+
+        const { mode, panelEl, startX, startY, startLeft, startTop, startWidth, startHeight } = panelInteraction;
+        const pointer = getWorkspacePoint(event.clientX, event.clientY);
+        const deltaX = pointer.x - startX;
+        const deltaY = pointer.y - startY;
+
+        if (mode === "drag") {
+          const nextLeft = clamp(startLeft + deltaX, -5000, 5000);
+          const nextTop = clamp(startTop + deltaY, -5000, 5000);
+          panelEl.style.left = `${nextLeft}px`;
+          panelEl.style.top = `${nextTop}px`;
+          if (panelInteraction.boardId === activeBoardId) renderPanelConnections();
+          return;
+        }
+
+        const nextWidth = clamp(startWidth + deltaX, 140, 2400);
+        const nextHeight = clamp(startHeight + deltaY, 110, 2400);
+        panelEl.style.width = `${nextWidth}px`;
+        panelEl.style.height = `${nextHeight}px`;
+        if (panelInteraction.boardId === activeBoardId) renderPanelConnections();
+      }
+
+      function endPanelInteraction(event) {
+        if (!panelInteraction || event.pointerId !== panelInteraction.pointerId) return;
+        panelInteraction.panelEl.classList.remove("is-dragging");
+        panelInteraction.panelEl.releasePointerCapture?.(event.pointerId);
+        panelInteraction = null;
+        renderPanelConnections();
+      }
+
+      function startConnectorInteraction(event, panelEl, outputEl) {
+        connectorInteraction = {
+          pointerId: event.pointerId,
+          fromPanelId: panelEl.dataset.panelId,
+          boardId: panelEl.closest("[data-board-id]")?.dataset.boardId || activeBoardId,
+          outputEl,
+          currentPoint: getWorkspacePoint(event.clientX, event.clientY),
+          targetPanelId: null,
+        };
+
+        bringPanelToFront(panelEl);
+        outputEl.setPointerCapture?.(event.pointerId);
+        renderPanelConnections();
+        event.preventDefault();
+      }
+
+      function startBoardPan(event) {
+        if (event.target instanceof Element && event.target.closest("[data-interactive-panel], button, input, form, [contenteditable='true']")) {
+          return;
+        }
+
+        const view = getBoardView();
+        boardPanInteraction = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          startPanX: view.panX,
+          startPanY: view.panY,
+        };
+        fourthWorkspaceEl.classList.add("is-panning");
+        getActiveBoardEl()?.classList.add("is-interacting");
+        fourthWorkspaceEl.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+      }
+
+      function handleBoardPanMove(event) {
+        if (!boardPanInteraction || event.pointerId !== boardPanInteraction.pointerId) return;
+        const view = getBoardView();
+        view.panX = boardPanInteraction.startPanX + (event.clientX - boardPanInteraction.startX);
+        view.panY = boardPanInteraction.startPanY + (event.clientY - boardPanInteraction.startY);
+        renderBoardView(activeBoardId, false);
+      }
+
+      function endBoardPan(event) {
+        if (!boardPanInteraction || event.pointerId !== boardPanInteraction.pointerId) return;
+        boardPanInteraction = null;
+        fourthWorkspaceEl.classList.remove("is-panning");
+        getActiveBoardEl()?.classList.remove("is-interacting");
+        fourthWorkspaceEl.releasePointerCapture?.(event.pointerId);
+        renderBoardView(activeBoardId, true);
+      }
+
+      function handleConnectorPointerMove(event) {
+        if (!connectorInteraction || event.pointerId !== connectorInteraction.pointerId) return;
+        if (connectorInteraction.boardId !== activeBoardId) return;
+
+        connectorInteraction.currentPoint = getWorkspacePoint(event.clientX, event.clientY);
+        const hoveredAcceptor = document.elementFromPoint(event.clientX, event.clientY)?.closest?.("[data-accept-node]");
+        const hoveredPanel = hoveredAcceptor?.closest?.("[data-interactive-panel]");
+        const validTarget = hoveredPanel && hoveredPanel.dataset.panelId !== connectorInteraction.fromPanelId ? hoveredPanel : null;
+
+        clearConnectionTargets();
+        if (validTarget) {
+          validTarget.classList.add("is-connection-target");
+          connectorInteraction.targetPanelId = validTarget.dataset.panelId;
+        } else {
+          connectorInteraction.targetPanelId = null;
+        }
+
+        renderPanelConnections();
+      }
+
+      function endConnectorInteraction(event) {
+        if (!connectorInteraction || event.pointerId !== connectorInteraction.pointerId) return;
+
+        const panelConnections = getBoardConnections(connectorInteraction.boardId);
+        if (
+          connectorInteraction.targetPanelId &&
+          !panelConnections.some(
+            (connection) =>
+              connection.from === connectorInteraction.fromPanelId &&
+              connection.to === connectorInteraction.targetPanelId,
+          )
+        ) {
+          panelConnections.push({
+            from: connectorInteraction.fromPanelId,
+            to: connectorInteraction.targetPanelId,
+          });
+        }
+
+        connectorInteraction.outputEl.releasePointerCapture?.(event.pointerId);
+        connectorInteraction = null;
+        clearConnectionTargets();
+        renderPanelConnections();
+      }
+
+      function attachInteractivePanel(panelEl) {
+        bringPanelToFront(panelEl);
+
+        panelEl.querySelector("[data-drag-handle]")?.addEventListener("pointerdown", (event) => {
+          if (event.target instanceof Element && event.target.closest('[contenteditable="true"]')) return;
+          startPanelInteraction(event, panelEl, "drag");
+        });
+
+        panelEl.querySelector("[data-resize-handle]")?.addEventListener("pointerdown", (event) => {
+          startPanelInteraction(event, panelEl, "resize");
+        });
+
+        panelEl.querySelector("[data-output-node]")?.addEventListener("pointerdown", (event) => {
+          startConnectorInteraction(event, panelEl, event.currentTarget);
+        });
+
+        panelEl.querySelector("[data-delete-panel]")?.addEventListener("click", () => {
+          removeInteractivePanel(panelEl);
+        });
+
+        panelEl.querySelector("[data-color-toggle]")?.addEventListener("click", () => {
+          cyclePanelTheme(panelEl);
+        });
+
+        panelEl.querySelector("[data-image-toggle]")?.addEventListener("click", () => {
+          panelEl.classList.toggle("is-image-form-open");
+          if (panelEl.classList.contains("is-image-form-open")) {
+            panelEl.querySelector("[data-image-form] input")?.focus();
+          }
+        });
+
+        panelEl.querySelector("[data-image-form]")?.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const formData = new FormData(event.currentTarget);
+          const imageUrl = String(formData.get("imageUrl") || "").trim();
+          setPanelImage(panelEl, imageUrl);
+          if (imageUrl) panelEl.classList.remove("is-image-form-open");
+        });
+      }
+
+      function createPanelMarkup(panelId, title, meta, body, theme) {
+        return `
+          <button class="fourth-drawer__delete" type="button" aria-label="Delete panel" data-delete-panel></button>
+          <button class="fourth-drawer__image-button" type="button" aria-label="Add image" data-image-toggle></button>
+          <button class="fourth-drawer__color-button" type="button" aria-label="Change panel color" data-color-toggle></button>
+          <form class="fourth-drawer__image-form" data-image-form>
+            <input class="fourth-drawer__image-input" type="url" name="imageUrl" placeholder="Paste image URL" autocomplete="off" />
+            <button class="fourth-drawer__image-apply" type="submit">Set</button>
+          </form>
+          <span class="fourth-drawer__connector fourth-drawer__connector--acceptor" data-accept-node aria-hidden="true"></span>
+          <button class="fourth-drawer__connector fourth-drawer__connector--output" type="button" data-output-node aria-label="Start connector"></button>
+          <div class="fourth-drawer__panel-image" data-panel-image aria-hidden="true"></div>
+          <div class="fourth-drawer__panel-header" data-drag-handle>
+            <span class="fourth-drawer__panel-title" contenteditable="true" spellcheck="false">${title}</span>
+            <span class="fourth-drawer__panel-meta">${meta}</span>
+          </div>
+          <div class="fourth-drawer__panel-body" contenteditable="true" spellcheck="false">${body}</div>
+          <button class="fourth-drawer__resize" type="button" aria-label="Resize panel" data-resize-handle></button>
+        `;
+      }
+
+      function addInteractivePanel() {
+        const boardEl = getActiveBoardEl();
+        if (!boardEl) return;
+
+        const panelEl = document.createElement("section");
+        const panelId = `panel-${panelIdCounter}`;
+        const left = 70 + (panelIdCounter % 4) * 38;
+        const top = 80 + (panelIdCounter % 5) * 28;
+        const themeCycle = ["green", "amber", "blue"];
+        const theme = themeCycle[(panelIdCounter - 1) % themeCycle.length];
+
+        panelEl.className = "fourth-drawer__panel-card";
+        panelEl.dataset.interactivePanel = "";
+        panelEl.dataset.panelId = panelId;
+        panelEl.dataset.panelTheme = theme;
+        panelEl.style.left = `${left}px`;
+        panelEl.style.top = `${top}px`;
+        panelEl.style.width = "220px";
+        panelEl.style.height = "150px";
+        panelEl.innerHTML = createPanelMarkup(
+          panelId,
+          `Block ${panelIdCounter}`,
+          String(panelIdCounter).padStart(2, "0"),
+          "New panel added to the canvas. Drag, resize, and connect it.",
+          theme,
+        );
+
+        boardEl.appendChild(panelEl);
+        attachInteractivePanel(panelEl);
+        panelIdCounter += 1;
+        renderPanelConnections();
+      }
+
+      function createBoardTab(boardId, label) {
+        const buttonEl = document.createElement("button");
+        buttonEl.className = "fourth-drawer__board-tab";
+        buttonEl.type = "button";
+        buttonEl.dataset.boardTab = boardId;
+        buttonEl.textContent = label;
+        buttonEl.addEventListener("click", () => switchBoard(boardId));
+        return buttonEl;
+      }
+
+      function addBoard() {
+        const boardId = `board-${boardIdCounter}`;
+        const boardLabel = `Board ${boardIdCounter}`;
+        const boardEl = document.createElement("div");
+        boardEl.className = "fourth-drawer__board";
+        boardEl.dataset.boardId = boardId;
+        boardEl.innerHTML = '<svg class="fourth-drawer__connections" aria-hidden="true"></svg>';
+        boardViewState.set(boardId, { panX: 0, panY: 0, zoom: 1 });
+        applyBoardAppearance(boardEl, { color: DEFAULT_BOARD_COLOR, image: "" });
+
+        fourthWorkspaceEl.appendChild(boardEl);
+        fourthBoardTabsEl.appendChild(createBoardTab(boardId, boardLabel));
+        getBoardConnections(boardId);
+        boardIdCounter += 1;
+        switchBoard(boardId);
+      }
+
+      function init() {
+        getBoardEls().forEach((boardEl) => {
+          applyBoardAppearance(boardEl, {
+            color: boardEl.dataset.boardColor || DEFAULT_BOARD_COLOR,
+            image: boardEl.dataset.boardImage || "",
+          });
+          renderBoardView(boardEl.dataset.boardId, true);
+        });
+
+        getBoardPanels("board-1").forEach(attachInteractivePanel);
+        window.addEventListener("pointermove", handlePanelPointerMove);
+        window.addEventListener("pointerup", endPanelInteraction);
+        window.addEventListener("pointercancel", endPanelInteraction);
+        fourthWorkspaceEl.addEventListener("pointerdown", startBoardPan);
+        window.addEventListener("pointermove", handleBoardPanMove);
+        window.addEventListener("pointerup", endBoardPan);
+        window.addEventListener("pointercancel", endBoardPan);
+        window.addEventListener("pointermove", handleConnectorPointerMove);
+        window.addEventListener("pointerup", endConnectorInteraction);
+        window.addEventListener("pointercancel", endConnectorInteraction);
+        window.addEventListener("resize", renderPanelConnections);
+
+        fourthAddPanelEl.addEventListener("click", addInteractivePanel);
+        fourthAddBoardEl.addEventListener("click", addBoard);
+        fourthBoardTriggerEl.addEventListener("click", () => {
+          if (fourthBoardPropertiesEl.hidden) {
+            openBoardProperties();
+          } else {
+            closeBoardProperties();
+          }
+        });
+        fourthBoardPropertiesCloseEl.addEventListener("click", closeBoardProperties);
+        fourthBoardResetEl.addEventListener("click", () => {
+          const boardEl = getActiveBoardEl();
+          applyBoardAppearance(boardEl, { color: DEFAULT_BOARD_COLOR, image: "" });
+          syncBoardPropertiesForm(boardEl);
+        });
+        zoomOutButtonEl.addEventListener("click", () => {
+          setBoardZoom(getBoardView().zoom - ZOOM_STEP);
+        });
+        zoomInButtonEl.addEventListener("click", () => {
+          setBoardZoom(getBoardView().zoom + ZOOM_STEP);
+        });
+        fourthWorkspaceEl.addEventListener(
+          "wheel",
+          (event) => {
+            event.preventDefault();
+            const delta = event.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+            setBoardZoom(getBoardView().zoom + delta);
+          },
+          { passive: false },
+        );
+        fourthBoardColorEl.addEventListener("input", () => {
+          fourthBoardColorTextEl.value = fourthBoardColorEl.value;
+        });
+        fourthBoardColorTextEl.addEventListener("input", () => {
+          fourthBoardColorEl.value = normalizeHexColor(fourthBoardColorTextEl.value, fourthBoardColorEl.value || DEFAULT_BOARD_COLOR);
+        });
+        fourthBoardPropertiesEl.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const boardEl = getActiveBoardEl();
+          const nextColor = normalizeHexColor(fourthBoardColorTextEl.value || fourthBoardColorEl.value || DEFAULT_BOARD_COLOR);
+          const nextImage = String(fourthBoardImageEl.value || "").trim();
+          applyBoardAppearance(boardEl, { color: nextColor, image: nextImage });
+          syncBoardPropertiesForm(boardEl);
+          closeBoardProperties();
+        });
+
+        document.addEventListener("pointerdown", (event) => {
+          const target = event.target;
+          if (!(target instanceof Element) || fourthBoardPropertiesEl.hidden) return;
+          if (target.closest("#fourthBoardProperties") || target.closest("#fourthBoardTrigger")) return;
+          closeBoardProperties();
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") closeBoardProperties();
+        });
+
+        renderBoardTabs();
+        renderPanelConnections();
+        syncBoardPropertiesForm();
+      }
+
+      init();
+    </script>
+  </body>
+</html>
