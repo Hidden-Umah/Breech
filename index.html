@@ -491,9 +491,9 @@
         min-width: 0;
         width: 100%;
         max-width: 460px;
-        justify-items: center;
+        justify-items: start;
         align-content: center;
-        text-align: center;
+        text-align: left;
       }
 
       .topbar__spacer {
@@ -510,19 +510,19 @@
 
       .slide-summary__dots {
         display: grid;
-        grid-template-columns: repeat(4, 58px);
-        justify-content: center;
+        grid-template-columns: repeat(6, 58px);
+        justify-content: start;
         align-items: center;
         width: auto;
         margin-top: 10px;
-        gap: 16px;
+        gap: 8px;
       }
 
       .slide-summary__dots span {
         display: grid;
         place-items: center;
-        width: 58px;
-        height: 58px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         transition:
           transform 180ms ease,
@@ -534,8 +534,8 @@
       .slide-summary__dots button {
         display: grid;
         place-items: center;
-        width: 58px;
-        height: 58px;
+        width: 40px;
+        height: 40px;
         padding: 0;
         border: 0;
         border-radius: 50%;
@@ -577,6 +577,20 @@
           0 0 18px rgba(74, 222, 128, 0.22);
       }
 
+      .slide-summary__dots span:nth-child(5) {
+        background: #7c3aed;
+        box-shadow:
+          0 10px 24px rgba(124, 58, 237, 0.38),
+          0 0 18px rgba(167, 139, 250, 0.24);
+      }
+
+      .slide-summary__dots span:nth-child(6) {
+        background: #0891b2;
+        box-shadow:
+          0 10px 24px rgba(8, 145, 178, 0.38),
+          0 0 18px rgba(103, 232, 249, 0.24);
+      }
+
       .slide-summary__dots span:hover {
         transform: translateY(-4px) scale(1.06);
         filter: brightness(1.08);
@@ -606,9 +620,21 @@
           0 0 24px rgba(74, 222, 128, 0.32);
       }
 
+      .slide-summary__dots span:nth-child(5):hover {
+        box-shadow:
+          0 14px 30px rgba(124, 58, 237, 0.48),
+          0 0 24px rgba(167, 139, 250, 0.34);
+      }
+
+      .slide-summary__dots span:nth-child(6):hover {
+        box-shadow:
+          0 14px 30px rgba(8, 145, 178, 0.48),
+          0 0 24px rgba(103, 232, 249, 0.34);
+      }
+
       .slide-summary__dots svg {
-        width: 24px;
-        height: 24px;
+        width: 18px;
+        height: 18px;
         color: #ffffff;
       }
 
@@ -634,9 +660,13 @@
         width: 100%;
         height: 100%;
         border-radius: 0;
+        position: relative;
+        overflow: hidden;
         background:
-          linear-gradient(180deg, rgba(16, 17, 22, 0.68), rgba(8, 9, 12, 0.82)),
-          var(--bank-bg-image, url("./image/sevenpm.jpg")) center / cover no-repeat;
+          radial-gradient(circle at 20% 18%, rgba(245, 158, 11, 0.18), transparent 22%),
+          radial-gradient(circle at 78% 24%, rgba(56, 189, 248, 0.16), transparent 24%),
+          radial-gradient(circle at 50% 82%, rgba(139, 92, 246, 0.16), transparent 28%),
+          #000;
         border-left: 0;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
         padding: 28px;
@@ -645,30 +675,32 @@
         gap: 18px;
       }
 
-      .bank-drawer__top {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-        align-items: stretch;
-        gap: 16px;
+      .bank-drawer__panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 22%, transparent 78%, rgba(255, 255, 255, 0.02)),
+          radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03), transparent 55%);
       }
 
-      .bank-drawer__close {
-        width: 100%;
-        min-width: 56px;
-        height: 100%;
-        border: 0;
-        border-radius: 24px;
-        background: rgba(255, 255, 255, 0.08);
-        color: #ffffff;
-        font-size: 1.1rem;
-        cursor: pointer;
+      .bank-drawer__top {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(180px, 0.8fr);
+        align-items: stretch;
+        gap: 28px;
+        position: relative;
+        z-index: 1;
       }
 
       .bank-drawer__canvas {
         display: grid;
-        grid-template-rows: 20% 60% 20%;
+        grid-template-rows: auto minmax(0, 1fr) auto;
         min-height: 0;
-        gap: 16px;
+        gap: 10px;
+        position: relative;
+        z-index: 1;
       }
 
       .bank-drawer__section {
@@ -684,12 +716,17 @@
 
       .bank-drawer__box {
         border-radius: 24px;
-        background: rgba(255, 255, 255, 0.04);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
         background-position: center;
         background-repeat: no-repeat;
         background-size: cover;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        backdrop-filter: blur(6px) saturate(108%);
+        -webkit-backdrop-filter: blur(6px) saturate(108%);
+        box-shadow:
+          0 12px 24px rgba(0, 0, 0, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.14),
+          inset 0 -1px 0 rgba(255, 255, 255, 0.04);
         display: grid;
         place-items: center;
         font-size: clamp(1.2rem, 2.5vw, 2rem);
@@ -715,18 +752,716 @@
         font-size: clamp(0.78rem, 1.5vw, 0.95rem);
       }
 
+      .bank-drawer__todo {
+        place-items: stretch;
+        align-content: start;
+        padding: 18px;
+        gap: 14px;
+        min-height: 320px;
+        font-size: 1rem;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .bank-drawer__todo-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .bank-drawer__todo-title {
+        margin: 0;
+        font-size: clamp(1rem, 2vw, 1.3rem);
+        font-weight: 700;
+        color: #fff5ea;
+        letter-spacing: -0.03em;
+      }
+
+      .bank-drawer__todo-count {
+        min-width: 32px;
+        height: 32px;
+        padding: 0 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.78);
+      }
+
+      .bank-drawer__todo-subtitle {
+        margin: 4px 0 0;
+        font-size: 0.82rem;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.58);
+      }
+
+      .bank-drawer__todo-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+      }
+
+      .bank-drawer__todo-input {
+        width: 100%;
+        min-width: 0;
+        padding: 12px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        background: rgba(7, 7, 9, 0.46);
+        color: #f8f4ef;
+        font: inherit;
+        outline: none;
+        transition:
+          border-color 180ms ease,
+          box-shadow 180ms ease,
+          background-color 180ms ease;
+      }
+
+      .bank-drawer__todo-input::placeholder {
+        color: rgba(255, 255, 255, 0.34);
+      }
+
+      .bank-drawer__todo-input:focus {
+        border-color: rgba(243, 181, 106, 0.5);
+        box-shadow: 0 0 0 4px rgba(243, 181, 106, 0.12);
+        background: rgba(7, 7, 9, 0.64);
+      }
+
+      .bank-drawer__todo-button {
+        padding: 0 16px;
+        border: 0;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f3b56a, #ef7d37);
+        color: #18110a;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 180ms ease,
+          filter 180ms ease,
+          box-shadow 180ms ease;
+        box-shadow: 0 10px 24px rgba(239, 125, 55, 0.26);
+      }
+
+      .bank-drawer__todo-button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.04);
+      }
+
+      .bank-drawer__todo-body {
+        display: grid;
+        gap: 14px;
+        min-height: 0;
+      }
+
+      .bank-drawer__todo-group {
+        display: grid;
+        gap: 10px;
+      }
+
+      .bank-drawer__todo-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      .bank-drawer__todo-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 9px;
+      }
+
+      .bank-drawer__todo-item {
+        display: grid;
+      }
+
+      .bank-drawer__todo-task {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        padding: 12px 13px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .bank-drawer__todo-check {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: #f3b56a;
+        cursor: pointer;
+      }
+
+      .bank-drawer__todo-text {
+        min-width: 0;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.88);
+        word-break: break-word;
+      }
+
+      .bank-drawer__todo-item.is-complete .bank-drawer__todo-task {
+        background: rgba(255, 255, 255, 0.035);
+        border-color: transparent;
+        box-shadow: none;
+      }
+
+      .bank-drawer__todo-item.is-complete .bank-drawer__todo-text {
+        color: rgba(255, 255, 255, 0.42);
+        text-decoration: line-through;
+      }
+
+      .bank-drawer__todo-empty {
+        margin: 0;
+        padding: 12px 13px;
+        border-radius: 16px;
+        border: 1px dashed rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.38);
+        font-size: 0.84rem;
+      }
+
+      .bank-drawer__todo-empty--completed {
+        border: 0;
+        background: transparent;
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] {
+        background:
+          radial-gradient(circle at top left, rgba(217, 255, 43, 0.16), transparent 34%),
+          linear-gradient(180deg, rgba(10, 12, 8, 0.98), rgba(2, 3, 2, 0.98));
+        border-color: rgba(217, 255, 43, 0.22);
+        box-shadow:
+          0 16px 28px rgba(0, 0, 0, 0.34),
+          0 0 28px rgba(195, 255, 43, 0.08),
+          inset 0 1px 0 rgba(239, 255, 180, 0.08);
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-title {
+        color: #e4ff67;
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-subtitle,
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-label,
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-empty {
+        color: rgba(224, 255, 136, 0.62);
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-count {
+        background: rgba(214, 255, 72, 0.12);
+        border-color: rgba(214, 255, 72, 0.24);
+        color: #ebff94;
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-input {
+        background: rgba(5, 7, 5, 0.92);
+        border-color: rgba(214, 255, 72, 0.14);
+        color: #f4ffd4;
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-input::placeholder {
+        color: rgba(224, 255, 136, 0.34);
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-input:focus {
+        border-color: rgba(214, 255, 72, 0.56);
+        box-shadow: 0 0 0 4px rgba(214, 255, 72, 0.12);
+        background: rgba(7, 10, 5, 0.98);
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-button {
+        background: linear-gradient(135deg, #e6ff4b, #a6d800);
+        color: #101406;
+        box-shadow: 0 10px 24px rgba(166, 216, 0, 0.28);
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-task {
+        background: rgba(214, 255, 72, 0.06);
+        border-color: rgba(214, 255, 72, 0.12);
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-check {
+        accent-color: #d9ff2b;
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-text {
+        color: #f3ffd1;
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-item.is-complete .bank-drawer__todo-task {
+        background: rgba(160, 196, 42, 0.06);
+        border-color: transparent;
+      }
+
+      .bank-drawer__todo[data-todo-list="company"] .bank-drawer__todo-item.is-complete .bank-drawer__todo-text {
+        color: rgba(222, 255, 126, 0.42);
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] {
+        background:
+          radial-gradient(circle at top left, rgba(167, 139, 250, 0.18), transparent 34%),
+          linear-gradient(180deg, rgba(10, 8, 14, 0.98), rgba(3, 2, 6, 0.98));
+        border-color: rgba(167, 139, 250, 0.24);
+        box-shadow:
+          0 16px 28px rgba(0, 0, 0, 0.34),
+          0 0 28px rgba(167, 139, 250, 0.1),
+          inset 0 1px 0 rgba(224, 211, 255, 0.08);
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-title {
+        color: #c4a7ff;
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-subtitle,
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-label,
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-empty {
+        color: rgba(212, 191, 255, 0.64);
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-count {
+        background: rgba(167, 139, 250, 0.12);
+        border-color: rgba(167, 139, 250, 0.24);
+        color: #d9c5ff;
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-input {
+        background: rgba(8, 6, 12, 0.92);
+        border-color: rgba(167, 139, 250, 0.16);
+        color: #f3edff;
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-input::placeholder {
+        color: rgba(212, 191, 255, 0.34);
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-input:focus {
+        border-color: rgba(167, 139, 250, 0.58);
+        box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.14);
+        background: rgba(10, 7, 16, 0.98);
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-button {
+        background: linear-gradient(135deg, #b794ff, #7c3aed);
+        color: #140b1f;
+        box-shadow: 0 10px 24px rgba(124, 58, 237, 0.3);
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-task {
+        background: rgba(167, 139, 250, 0.07);
+        border-color: rgba(167, 139, 250, 0.12);
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-check {
+        accent-color: #a78bfa;
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-text {
+        color: #f2ebff;
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-item.is-complete .bank-drawer__todo-task {
+        background: rgba(124, 58, 237, 0.08);
+        border-color: transparent;
+      }
+
+      .bank-drawer__todo[data-todo-list="school"] .bank-drawer__todo-item.is-complete .bank-drawer__todo-text {
+        color: rgba(212, 191, 255, 0.42);
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] {
+        background:
+          radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 34%),
+          linear-gradient(180deg, rgba(7, 12, 20, 0.98), rgba(2, 5, 10, 0.98));
+        border-color: rgba(96, 165, 250, 0.24);
+        box-shadow:
+          0 16px 28px rgba(0, 0, 0, 0.34),
+          0 0 28px rgba(96, 165, 250, 0.1),
+          inset 0 1px 0 rgba(191, 219, 254, 0.08);
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-title {
+        color: #93c5fd;
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-subtitle,
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-label,
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-empty {
+        color: rgba(191, 219, 254, 0.64);
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-count {
+        background: rgba(96, 165, 250, 0.12);
+        border-color: rgba(96, 165, 250, 0.24);
+        color: #dbeafe;
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-input {
+        background: rgba(5, 10, 18, 0.92);
+        border-color: rgba(96, 165, 250, 0.16);
+        color: #eff6ff;
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-input::placeholder {
+        color: rgba(191, 219, 254, 0.34);
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-input:focus {
+        border-color: rgba(96, 165, 250, 0.58);
+        box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.14);
+        background: rgba(6, 12, 22, 0.98);
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-button {
+        background: linear-gradient(135deg, #93c5fd, #2563eb);
+        color: #07111f;
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-task {
+        background: rgba(96, 165, 250, 0.07);
+        border-color: rgba(96, 165, 250, 0.12);
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-check {
+        accent-color: #60a5fa;
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-text {
+        color: #eff6ff;
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-item.is-complete .bank-drawer__todo-task {
+        background: rgba(37, 99, 235, 0.08);
+        border-color: transparent;
+      }
+
+      .bank-drawer__todo[data-todo-list="life"] .bank-drawer__todo-item.is-complete .bank-drawer__todo-text {
+        color: rgba(191, 219, 254, 0.42);
+      }
+
+      .bank-drawer__box--icons {
+        padding: 10px 12px;
+        grid-template-columns: repeat(4, auto);
+        gap: 4px;
+        justify-content: start;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      .bank-drawer__mini-icon {
+        width: 100%;
+        aspect-ratio: 1;
+        max-width: 40px;
+        justify-self: center;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: #fff;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          filter 180ms ease;
+      }
+
+      .bank-drawer__mini-icon--button {
+        border: 0;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .bank-drawer__mini-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .bank-drawer__mini-icon:nth-child(1) {
+        background: #d97706;
+        box-shadow:
+          0 10px 20px rgba(217, 119, 6, 0.32),
+          0 0 16px rgba(245, 158, 11, 0.24);
+      }
+
+      .bank-drawer__mini-icon:nth-child(2) {
+        background: #dc2626;
+        box-shadow:
+          0 10px 20px rgba(220, 38, 38, 0.32),
+          0 0 16px rgba(248, 113, 113, 0.22);
+      }
+
+      .bank-drawer__mini-icon:nth-child(3) {
+        background: #2563eb;
+        box-shadow:
+          0 10px 20px rgba(37, 99, 235, 0.32),
+          0 0 16px rgba(96, 165, 250, 0.22);
+      }
+
+      .bank-drawer__mini-icon:nth-child(4) {
+        background: #15803d;
+        box-shadow:
+          0 10px 20px rgba(21, 128, 61, 0.32),
+          0 0 16px rgba(74, 222, 128, 0.2);
+      }
+
+      .bank-drawer__mini-icon:hover {
+        transform: translateY(-3px) scale(1.05);
+        filter: brightness(1.08);
+      }
+
+
       .bank-drawer__overlay {
         display: none;
       }
 
-      .app.is-bank-open .slides,
-      .app.is-bank-open .edge-fade,
-      .app.is-bank-open .hud {
+      .app.is-drawer-open .bank-drawer__overlay {
+        display: block;
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        border: 0;
+        padding: 0;
+        background: rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+      }
+
+      .app.is-drawer-open .slides,
+      .app.is-drawer-open .edge-fade,
+      .app.is-drawer-open .hud {
         transform: translateX(-100%);
       }
 
-      .app.is-bank-open .bank-drawer {
+      .app.is-drawer-open .bank-drawer.is-open {
         transform: translateX(0);
+      }
+
+      .school-drawer .bank-drawer__panel {
+        background:
+          linear-gradient(90deg, rgba(4, 11, 17, 0.82) 0%, rgba(4, 11, 17, 0.48) 26%, rgba(4, 11, 17, 0.08) 52%, rgba(4, 11, 17, 0.72) 100%),
+          linear-gradient(180deg, rgba(4, 11, 17, 0.32), rgba(4, 11, 17, 0.1) 32%, rgba(4, 11, 17, 0.44) 100%),
+          url("./image/sevenpm.jpg") center / cover no-repeat,
+          radial-gradient(circle at 20% 18%, rgba(96, 165, 250, 0.16), transparent 22%),
+          radial-gradient(circle at 78% 24%, rgba(167, 139, 250, 0.14), transparent 24%),
+          radial-gradient(circle at 50% 82%, rgba(59, 130, 246, 0.18), transparent 28%),
+          #02040a;
+      }
+
+      .fourth-drawer .bank-drawer__panel {
+        background:
+          radial-gradient(circle at 18% 18%, rgba(74, 222, 128, 0.14), transparent 22%),
+          radial-gradient(circle at 82% 22%, rgba(34, 197, 94, 0.12), transparent 22%),
+          linear-gradient(180deg, rgba(6, 10, 8, 0.98), rgba(1, 3, 2, 0.99));
+      }
+
+      .fourth-drawer .bank-drawer__canvas {
+        grid-template-rows: minmax(0, 1fr);
+      }
+
+      .fourth-drawer__blank {
+        min-height: 0;
+        height: 100%;
+        padding: 0;
+      }
+
+      .fourth-drawer__workspace {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: min(72vh, 760px);
+        overflow: hidden;
+        background: transparent;
+      }
+
+      .fourth-drawer__connections {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: visible;
+      }
+
+      .fourth-drawer__connection-line {
+        fill: none;
+        stroke: rgba(180, 255, 201, 0.72);
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.22));
+      }
+
+      .fourth-drawer__panel-card {
+        position: absolute;
+        min-width: 140px;
+        min-height: 110px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow:
+          0 12px 26px rgba(0, 0, 0, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        color: #f5fff7;
+        overflow: hidden;
+        user-select: none;
+        touch-action: none;
+      }
+
+      .fourth-drawer__panel-card.is-connection-target {
+        box-shadow:
+          0 0 0 2px rgba(180, 255, 201, 0.22),
+          0 12px 26px rgba(0, 0, 0, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+
+      .fourth-drawer__panel-card[data-panel-theme="green"] {
+        background: linear-gradient(180deg, rgba(74, 222, 128, 0.18), rgba(9, 20, 12, 0.22));
+      }
+
+      .fourth-drawer__panel-card[data-panel-theme="amber"] {
+        background: linear-gradient(180deg, rgba(245, 158, 11, 0.16), rgba(24, 15, 4, 0.2));
+      }
+
+      .fourth-drawer__panel-card[data-panel-theme="blue"] {
+        background: linear-gradient(180deg, rgba(96, 165, 250, 0.18), rgba(7, 12, 20, 0.24));
+      }
+
+      .fourth-drawer__panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px 8px;
+        cursor: grab;
+      }
+
+      .fourth-drawer__panel-card.is-dragging .fourth-drawer__panel-header {
+        cursor: grabbing;
+      }
+
+      .fourth-drawer__panel-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .fourth-drawer__panel-meta {
+        font-size: 0.72rem;
+        color: rgba(245, 255, 247, 0.6);
+      }
+
+      .fourth-drawer__panel-body {
+        padding: 0 14px 16px;
+        font-size: 0.88rem;
+        line-height: 1.45;
+        color: rgba(245, 255, 247, 0.82);
+      }
+
+      .fourth-drawer__connector {
+        position: absolute;
+        top: 50%;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid rgba(224, 255, 231, 0.7);
+        transform: translateY(-50%);
+        z-index: 2;
+      }
+
+      .fourth-drawer__connector--acceptor {
+        left: -7px;
+        background: rgba(7, 14, 9, 0.92);
+        box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.08);
+      }
+
+      .fourth-drawer__connector--output {
+        right: -7px;
+        background: linear-gradient(135deg, #9bffb5, #4ade80);
+        cursor: crosshair;
+        box-shadow:
+          0 0 0 4px rgba(74, 222, 128, 0.08),
+          0 0 12px rgba(74, 222, 128, 0.18);
+      }
+
+      .fourth-drawer__resize {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        width: 16px;
+        height: 16px;
+        border: 0;
+        padding: 0;
+        background:
+          linear-gradient(135deg, transparent 0 45%, rgba(255, 255, 255, 0.82) 45% 58%, transparent 58% 100%);
+        opacity: 0.72;
+        cursor: nwse-resize;
+      }
+      
+
+      .school-drawer__blank {
+        min-height: 0;
+        height: 100%;
+        display: block;
+      }
+
+      .school-drawer__content {
+        position: relative;
+        z-index: 1;
+        min-height: 100%;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 18px;
+        padding: clamp(14px, 2.4vw, 28px);
+      }
+
+      .school-drawer__nav {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 16px;
+        color: rgba(242, 247, 250, 0.92);
+      }
+
+      .school-drawer__brand {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .school-drawer__hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: center;
+        gap: clamp(18px, 3vw, 44px);
+        min-height: 0;
+      }
+
+      .school-drawer__intro {
+        align-self: center;
+        max-width: 420px;
+        padding-left: clamp(2px, 1vw, 14px);
+      }
+
+      .school-drawer__title {
+        margin: 0;
+        font-size: clamp(2.2rem, 5vw, 4.6rem);
+        line-height: 0.9;
+        letter-spacing: -0.08em;
+        text-transform: uppercase;
+        color: #f5f6f7;
       }
 
       .bottom {
@@ -759,6 +1494,8 @@
         letter-spacing: 0.2em;
         white-space: nowrap;
         justify-self: start;
+        margin-top: -22px;
+        padding-top: 6px;
       }
 
       .time-dial {
@@ -863,9 +1600,9 @@
       .time-dial__input::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 34px;
-        height: 34px;
-        margin-top: -16px;
+        width: 26px;
+        height: 26px;
+        margin-top: -12px;
         border: 0;
         border-radius: 50%;
         background:
@@ -893,8 +1630,8 @@
       }
 
       .time-dial__input::-moz-range-thumb {
-        width: 34px;
-        height: 34px;
+        width: 26px;
+        height: 26px;
         border: 0;
         margin-top: 0;
         border-radius: 50%;
@@ -913,7 +1650,7 @@
 
       .time-dial__marker {
         position: absolute;
-        top: -10px;
+        top: -4px;
         left: calc(8px + (100% - 16px) * var(--dial-ratio));
         z-index: 3;
         display: block;
@@ -1026,6 +1763,16 @@
           grid-template-columns: 1fr;
         }
 
+        .school-drawer__nav {
+          flex-direction: column;
+          align-items: start;
+        }
+
+        .school-drawer__hero {
+          grid-template-columns: 1fr;
+          align-items: start;
+        }
+
         .clock__weather-section + .clock__weather-section {
           border-left: 0;
           border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -1071,7 +1818,7 @@
         }
 
         .time-dial__marker {
-          top: -8px;
+          top: -4px;
           font-size: 0.95rem;
         }
 
@@ -1082,8 +1829,8 @@
 
         .time-dial__input::-webkit-slider-thumb,
         .time-dial__input::-moz-range-thumb {
-          width: 28px;
-          height: 28px;
+          width: 22px;
+          height: 22px;
         }
 
         .task-card {
@@ -1102,7 +1849,7 @@
     <main class="app" aria-label="Time-based image slider">
       <div class="slides" id="slides" aria-hidden="true"></div>
       <div class="edge-fade" aria-hidden="true"></div>
-      <button class="bank-drawer__overlay" id="bankOverlay" type="button" aria-label="Close bank page"></button>
+      <button class="bank-drawer__overlay" id="bankOverlay" type="button" aria-label="Close open page"></button>
       <aside class="bank-drawer" id="bankDrawer" aria-hidden="true">
         <div class="bank-drawer__panel">
           <div class="bank-drawer__top">
@@ -1112,21 +1859,266 @@
                 <div class="clock__date" id="bankCurrentDate">Loading date...</div>
               </div>
             </div>
-            <div class="bank-drawer__box">2</div>
-            <div class="bank-drawer__box">3</div>
-            <button class="bank-drawer__close" id="bankClose" type="button" aria-label="Close bank page">×</button>
+            <div class="bank-drawer__box bank-drawer__box--icons">
+              <button class="bank-drawer__mini-icon bank-drawer__mini-icon--button" id="bankBackTrigger" type="button" aria-label="Back to landing page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 2.75a1 1 0 0 1 1 1v1.6a1 1 0 1 1-2 0v-1.6a1 1 0 0 1 1-1Zm0 14.65a1 1 0 0 1 1 1v1.6a1 1 0 1 1-2 0V18.4a1 1 0 0 1 1-1ZM21.25 11a1 1 0 1 1 0 2h-1.6a1 1 0 1 1 0-2h1.6Zm-16.9 0a1 1 0 1 1 0 2h-1.6a1 1 0 1 1 0-2h1.6Zm12.38-5.8a1 1 0 0 1 1.41 0l1.13 1.13a1 1 0 0 1-1.41 1.41l-1.13-1.13a1 1 0 0 1 0-1.41Zm-10.59 10.6a1 1 0 0 1 1.41 0l1.13 1.13a1 1 0 1 1-1.41 1.41L6.14 17.2a1 1 0 0 1 0-1.41Zm12 .01a1 1 0 0 1 0 1.41l-1.13 1.13a1 1 0 1 1-1.41-1.41l1.13-1.13a1 1 0 0 1 1.41 0Zm-10.6-10.6a1 1 0 0 1 0 1.41L6.41 7.75A1 1 0 1 1 5 6.34L6.13 5.2a1 1 0 0 1 1.41 0ZM12 7.25A4.75 4.75 0 1 1 7.25 12A4.76 4.76 0 0 1 12 7.25Z"
+                  />
+                </svg>
+              </button>
+              <div class="bank-drawer__mini-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M7.5 18.5h8.8a4.2 4.2 0 0 0 .5-8.37A5.5 5.5 0 0 0 6.21 8.6A4.4 4.4 0 0 0 7.5 18.5Z"
+                  />
+                </svg>
+              </div>
+              <button class="bank-drawer__mini-icon bank-drawer__mini-icon--button" type="button" data-open-drawer="school" aria-label="Open third page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M7.5 13.75a1 1 0 0 1 .92.62l.58 1.4l.58-1.4a1 1 0 0 1 1.84 0l.58 1.4l.58-1.4a1 1 0 1 1 1.84.78l-1.5 3.6a1 1 0 0 1-1.84 0l-.58-1.4l-.58 1.4a1 1 0 0 1-1.84 0l-1.5-3.6a1 1 0 0 1 .92-1.4Zm8.8-3.25A3.8 3.8 0 0 0 16 10a5 5 0 0 0-9.72-1.46A3.95 3.95 0 0 0 7.5 16H8l.58-1.4a2.8 2.8 0 0 1 5.16 0l.58 1.4h2a3 3 0 0 0 0-6Z"
+                  />
+                </svg>
+              </button>
+              <button class="bank-drawer__mini-icon bank-drawer__mini-icon--button" type="button" data-open-drawer="fourth" aria-label="Open fourth page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 3.5a1 1 0 0 1 .97.76l2.2 8.67h2.58a1 1 0 0 1 .78 1.62l-5.75 7a1 1 0 0 1-1.75-.86l1.16-5.94H8.25a1 1 0 0 1-.96-1.28l3.75-9.25A1 1 0 0 1 12 3.5Z"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
           <div class="bank-drawer__canvas">
             <div class="bank-drawer__section"></div>
             <div class="bank-drawer__section">
               <div class="bank-drawer__row">
-                <div class="bank-drawer__box">4</div>
-                <div class="bank-drawer__box">5</div>
-                <div class="bank-drawer__box">6</div>
+                <section class="bank-drawer__box bank-drawer__todo" data-todo-list="life">
+                  <div class="bank-drawer__todo-header">
+                    <div>
+                      <h2 class="bank-drawer__todo-title">Life</h2>
+                      <p class="bank-drawer__todo-subtitle">Personal errands and everyday tasks.</p>
+                    </div>
+                    <span class="bank-drawer__todo-count" data-todo-count>0</span>
+                  </div>
+                  <form class="bank-drawer__todo-form" data-todo-form>
+                    <input class="bank-drawer__todo-input" name="task" type="text" placeholder="Add a life task" autocomplete="off" />
+                    <button class="bank-drawer__todo-button" type="submit">Add</button>
+                  </form>
+                  <div class="bank-drawer__todo-body">
+                    <div class="bank-drawer__todo-group">
+                      <span class="bank-drawer__todo-label">To Do</span>
+                      <ul class="bank-drawer__todo-list" data-todo-active></ul>
+                    </div>
+                    <div class="bank-drawer__todo-group">
+                      <span class="bank-drawer__todo-label">Completed</span>
+                      <ul class="bank-drawer__todo-list" data-todo-completed></ul>
+                    </div>
+                  </div>
+                </section>
+                <section class="bank-drawer__box bank-drawer__todo" data-todo-list="school">
+                  <div class="bank-drawer__todo-header">
+                    <div>
+                      <h2 class="bank-drawer__todo-title">School</h2>
+                      <p class="bank-drawer__todo-subtitle">Assignments, reading, and class prep.</p>
+                    </div>
+                    <span class="bank-drawer__todo-count" data-todo-count>0</span>
+                  </div>
+                  <form class="bank-drawer__todo-form" data-todo-form>
+                    <input class="bank-drawer__todo-input" name="task" type="text" placeholder="Add a school task" autocomplete="off" />
+                    <button class="bank-drawer__todo-button" type="submit">Add</button>
+                  </form>
+                  <div class="bank-drawer__todo-body">
+                    <div class="bank-drawer__todo-group">
+                      <span class="bank-drawer__todo-label">To Do</span>
+                      <ul class="bank-drawer__todo-list" data-todo-active></ul>
+                    </div>
+                    <div class="bank-drawer__todo-group">
+                      <span class="bank-drawer__todo-label">Completed</span>
+                      <ul class="bank-drawer__todo-list" data-todo-completed></ul>
+                    </div>
+                  </div>
+                </section>
+                <section class="bank-drawer__box bank-drawer__todo" data-todo-list="company">
+                  <div class="bank-drawer__todo-header">
+                    <div>
+                      <h2 class="bank-drawer__todo-title">Company</h2>
+                      <p class="bank-drawer__todo-subtitle">Track work items and mark wins as done.</p>
+                    </div>
+                    <span class="bank-drawer__todo-count" data-todo-count>0</span>
+                  </div>
+                  <form class="bank-drawer__todo-form" data-todo-form>
+                    <input class="bank-drawer__todo-input" name="task" type="text" placeholder="Add a company task" autocomplete="off" />
+                    <button class="bank-drawer__todo-button" type="submit">Add</button>
+                  </form>
+                  <div class="bank-drawer__todo-body">
+                    <div class="bank-drawer__todo-group">
+                      <span class="bank-drawer__todo-label">To Do</span>
+                      <ul class="bank-drawer__todo-list" data-todo-active></ul>
+                    </div>
+                    <div class="bank-drawer__todo-group">
+                      <span class="bank-drawer__todo-label">Completed</span>
+                      <ul class="bank-drawer__todo-list" data-todo-completed></ul>
+                    </div>
+                  </div>
+                </section>
               </div>
             </div>
             <div class="bank-drawer__section">
-              <div class="bank-drawer__box">7</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <aside class="bank-drawer school-drawer" id="schoolDrawer" aria-hidden="true">
+        <div class="bank-drawer__panel">
+          <div class="bank-drawer__top">
+            <div class="bank-drawer__box bank-drawer__box--icons">
+              <button class="bank-drawer__mini-icon bank-drawer__mini-icon--button" id="schoolBackTrigger" type="button" aria-label="Back to landing page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 2.75a1 1 0 0 1 1 1v1.6a1 1 0 1 1-2 0v-1.6a1 1 0 0 1 1-1Zm0 14.65a1 1 0 0 1 1 1v1.6a1 1 0 1 1-2 0V18.4a1 1 0 0 1 1-1ZM21.25 11a1 1 0 1 1 0 2h-1.6a1 1 0 1 1 0-2h1.6Zm-16.9 0a1 1 0 1 1 0 2h-1.6a1 1 0 1 1 0-2h1.6Zm12.38-5.8a1 1 0 0 1 1.41 0l1.13 1.13a1 1 0 0 1-1.41 1.41l-1.13-1.13a1 1 0 0 1 0-1.41Zm-10.59 10.6a1 1 0 0 1 1.41 0l1.13 1.13a1 1 0 1 1-1.41 1.41L6.14 17.2a1 1 0 0 1 0-1.41Zm12 .01a1 1 0 0 1 0 1.41l-1.13 1.13a1 1 0 1 1-1.41-1.41l1.13-1.13a1 1 0 0 1 1.41 0Zm-10.6-10.6a1 1 0 0 1 0 1.41L6.41 7.75A1 1 0 1 1 5 6.34L6.13 5.2a1 1 0 0 1 1.41 0ZM12 7.25A4.75 4.75 0 1 1 7.25 12A4.76 4.76 0 0 1 12 7.25Z"
+                  />
+                </svg>
+              </button>
+              <div class="bank-drawer__mini-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 4.25a7.75 7.75 0 1 1 0 15.5a7.75 7.75 0 0 1 0-15.5Zm0 2a1 1 0 0 0-1 1V12c0 .27.11.52.29.71l2.75 2.75a1 1 0 0 0 1.42-1.42L13.25 11.83V7.25a1 1 0 0 0-1-1Z"
+                  />
+                </svg>
+              </div>
+              <button class="bank-drawer__mini-icon bank-drawer__mini-icon--button" type="button" data-open-drawer="school" aria-label="Open third page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M7.75 4.5h8.5A2.75 2.75 0 0 1 19 7.25v9.5a2.75 2.75 0 0 1-2.75 2.75h-8.5A2.75 2.75 0 0 1 5 16.75v-9.5A2.75 2.75 0 0 1 7.75 4.5Zm0 2a.75.75 0 0 0-.75.75v1.5h10v-1.5a.75.75 0 0 0-.75-.75h-8.5Z"
+                  />
+                </svg>
+              </button>
+              <button class="bank-drawer__mini-icon bank-drawer__mini-icon--button" type="button" data-open-drawer="fourth" aria-label="Open fourth page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 3.5a1 1 0 0 1 .8.4l6 8a1 1 0 0 1-.8 1.6h-3v5.25a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V13.5H6a1 1 0 0 1-.8-1.6l6-8a1 1 0 0 1 .8-.4Z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="bank-drawer__canvas">
+            <div class="bank-drawer__section school-drawer__blank">
+              <div class="school-drawer__content">
+                <div class="school-drawer__nav">
+                  <span class="school-drawer__brand">Japan.</span>
+                </div>
+                <div class="school-drawer__hero">
+                  <div class="school-drawer__intro">
+                    <h2 class="school-drawer__title">Endless Discovery</h2>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <aside class="bank-drawer fourth-drawer" id="fourthDrawer" aria-hidden="true">
+        <div class="bank-drawer__panel">
+          <div class="bank-drawer__top">
+            <div class="bank-drawer__box bank-drawer__box--icons">
+              <button class="bank-drawer__mini-icon bank-drawer__mini-icon--button" id="fourthBackTrigger" type="button" aria-label="Back to landing page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 2.75a1 1 0 0 1 1 1v1.6a1 1 0 1 1-2 0v-1.6a1 1 0 0 1 1-1Zm0 14.65a1 1 0 0 1 1 1v1.6a1 1 0 1 1-2 0V18.4a1 1 0 0 1 1-1ZM21.25 11a1 1 0 1 1 0 2h-1.6a1 1 0 1 1 0-2h1.6Zm-16.9 0a1 1 0 1 1 0 2h-1.6a1 1 0 1 1 0-2h1.6Zm12.38-5.8a1 1 0 0 1 1.41 0l1.13 1.13a1 1 0 0 1-1.41 1.41l-1.13-1.13a1 1 0 0 1 0-1.41Zm-10.59 10.6a1 1 0 0 1 1.41 0l1.13 1.13a1 1 0 1 1-1.41 1.41L6.14 17.2a1 1 0 0 1 0-1.41Zm12 .01a1 1 0 0 1 0 1.41l-1.13 1.13a1 1 0 1 1-1.41-1.41l1.13-1.13a1 1 0 0 1 1.41 0Zm-10.6-10.6a1 1 0 0 1 0 1.41L6.41 7.75A1 1 0 1 1 5 6.34L6.13 5.2a1 1 0 0 1 1.41 0ZM12 7.25A4.75 4.75 0 1 1 7.25 12A4.76 4.76 0 0 1 12 7.25Z"
+                  />
+                </svg>
+              </button>
+              <div class="bank-drawer__mini-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M7.5 18.5h8.8a4.2 4.2 0 0 0 .5-8.37A5.5 5.5 0 0 0 6.21 8.6A4.4 4.4 0 0 0 7.5 18.5Z"
+                  />
+                </svg>
+              </div>
+              <button class="bank-drawer__mini-icon bank-drawer__mini-icon--button" type="button" data-open-drawer="school" aria-label="Open third page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M7.75 4.5h8.5A2.75 2.75 0 0 1 19 7.25v9.5a2.75 2.75 0 0 1-2.75 2.75h-8.5A2.75 2.75 0 0 1 5 16.75v-9.5A2.75 2.75 0 0 1 7.75 4.5Zm0 2a.75.75 0 0 0-.75.75v1.5h10v-1.5a.75.75 0 0 0-.75-.75h-8.5Z"
+                  />
+                </svg>
+              </button>
+              <button class="bank-drawer__mini-icon bank-drawer__mini-icon--button" type="button" data-open-drawer="fourth" aria-label="Open fourth page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 3.5a1 1 0 0 1 .8.4l6 8a1 1 0 0 1-.8 1.6h-3v5.25a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V13.5H6a1 1 0 0 1-.8-1.6l6-8a1 1 0 0 1 .8-.4Z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="bank-drawer__canvas">
+            <div class="bank-drawer__section fourth-drawer__blank">
+              <div class="fourth-drawer__workspace" id="fourthWorkspace">
+                <svg class="fourth-drawer__connections" id="fourthConnections" aria-hidden="true"></svg>
+                <section
+                  class="fourth-drawer__panel-card"
+                  data-interactive-panel
+                  data-panel-id="panel-1"
+                  data-panel-theme="green"
+                  style="left: 42px; top: 68px; width: 260px; height: 170px;"
+                >
+                  <span class="fourth-drawer__connector fourth-drawer__connector--acceptor" data-accept-node aria-hidden="true"></span>
+                  <button class="fourth-drawer__connector fourth-drawer__connector--output" type="button" data-output-node aria-label="Start connector"></button>
+                  <div class="fourth-drawer__panel-header" data-drag-handle>
+                    <span class="fourth-drawer__panel-title">Ideas</span>
+                    <span class="fourth-drawer__panel-meta">01</span>
+                  </div>
+                  <div class="fourth-drawer__panel-body">Drop notes, references, or components here and arrange them however you want.</div>
+                  <button class="fourth-drawer__resize" type="button" aria-label="Resize panel" data-resize-handle></button>
+                </section>
+                <section
+                  class="fourth-drawer__panel-card"
+                  data-interactive-panel
+                  data-panel-id="panel-2"
+                  data-panel-theme="amber"
+                  style="left: 346px; top: 142px; width: 240px; height: 150px;"
+                >
+                  <span class="fourth-drawer__connector fourth-drawer__connector--acceptor" data-accept-node aria-hidden="true"></span>
+                  <button class="fourth-drawer__connector fourth-drawer__connector--output" type="button" data-output-node aria-label="Start connector"></button>
+                  <div class="fourth-drawer__panel-header" data-drag-handle>
+                    <span class="fourth-drawer__panel-title">Notes</span>
+                    <span class="fourth-drawer__panel-meta">02</span>
+                  </div>
+                  <div class="fourth-drawer__panel-body">This page is intentionally blank aside from movable panels you can shape into a layout.</div>
+                  <button class="fourth-drawer__resize" type="button" aria-label="Resize panel" data-resize-handle></button>
+                </section>
+                <section
+                  class="fourth-drawer__panel-card"
+                  data-interactive-panel
+                  data-panel-id="panel-3"
+                  data-panel-theme="blue"
+                  style="left: 628px; top: 84px; width: 230px; height: 210px;"
+                >
+                  <span class="fourth-drawer__connector fourth-drawer__connector--acceptor" data-accept-node aria-hidden="true"></span>
+                  <button class="fourth-drawer__connector fourth-drawer__connector--output" type="button" data-output-node aria-label="Start connector"></button>
+                  <div class="fourth-drawer__panel-header" data-drag-handle>
+                    <span class="fourth-drawer__panel-title">Canvas</span>
+                    <span class="fourth-drawer__panel-meta">03</span>
+                  </div>
+                  <div class="fourth-drawer__panel-body">Resize this one larger or smaller and move it around to test the interaction.</div>
+                  <button class="fourth-drawer__resize" type="button" aria-label="Resize panel" data-resize-handle></button>
+                </section>
+              </div>
             </div>
           </div>
         </div>
@@ -1183,10 +2175,30 @@
                     </button>
                   </span>
                   <span>
+                    <button type="button" id="schoolTrigger" data-open-drawer="school" aria-label="Open school page">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M7.5 13.75a1 1 0 0 1 .92.62l.58 1.4l.58-1.4a1 1 0 0 1 1.84 0l.58 1.4l.58-1.4a1 1 0 1 1 1.84.78l-1.5 3.6a1 1 0 0 1-1.84 0l-.58-1.4l-.58 1.4a1 1 0 0 1-1.84 0l-1.5-3.6a1 1 0 0 1 .92-1.4Zm8.8-3.25A3.8 3.8 0 0 0 16 10a5 5 0 0 0-9.72-1.46A3.95 3.95 0 0 0 7.5 16H8l.58-1.4a2.8 2.8 0 0 1 5.16 0l.58 1.4h2a3 3 0 0 0 0-6Z"
+                        />
+                      </svg>
+                    </button>
+                  </span>
+                  <span>
+                    <button type="button" data-open-drawer="fourth" aria-label="Open fourth page">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 3.5a1 1 0 0 1 .97.76l2.2 8.67h2.58a1 1 0 0 1 .78 1.62l-5.75 7a1 1 0 0 1-1.75-.86l1.16-5.94H8.25a1 1 0 0 1-.96-1.28l3.75-9.25A1 1 0 0 1 12 3.5Z"
+                        />
+                      </svg>
+                    </button>
+                  </span>
+                  <span>
                     <svg viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
-                        d="M7.5 13.75a1 1 0 0 1 .92.62l.58 1.4l.58-1.4a1 1 0 0 1 1.84 0l.58 1.4l.58-1.4a1 1 0 1 1 1.84.78l-1.5 3.6a1 1 0 0 1-1.84 0l-.58-1.4l-.58 1.4a1 1 0 0 1-1.84 0l-1.5-3.6a1 1 0 0 1 .92-1.4Zm8.8-3.25A3.8 3.8 0 0 0 16 10a5 5 0 0 0-9.72-1.46A3.95 3.95 0 0 0 7.5 16H8l.58-1.4a2.8 2.8 0 0 1 5.16 0l.58 1.4h2a3 3 0 0 0 0-6Z"
+                        d="M12 4.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 0 1 0-7Zm-5.75 13a4.75 4.75 0 0 1 4.75-4.75h2a4.75 4.75 0 0 1 4.75 4.75a1 1 0 1 1-2 0a2.75 2.75 0 0 0-2.75-2.75h-2a2.75 2.75 0 0 0-2.75 2.75a1 1 0 1 1-2 0Z"
                       />
                     </svg>
                   </span>
@@ -1194,7 +2206,7 @@
                     <svg viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
-                        d="M12 3.5a1 1 0 0 1 .97.76l2.2 8.67h2.58a1 1 0 0 1 .78 1.62l-5.75 7a1 1 0 0 1-1.75-.86l1.16-5.94H8.25a1 1 0 0 1-.96-1.28l3.75-9.25A1 1 0 0 1 12 3.5Z"
+                        d="M12 3a1 1 0 0 1 .9.56l2.06 4.18l4.61.67a1 1 0 0 1 .55 1.7l-3.34 3.25l.79 4.59a1 1 0 0 1-1.45 1.06L12 16.84l-4.12 2.17a1 1 0 0 1-1.45-1.06l.79-4.59L3.88 10.1a1 1 0 0 1 .55-1.7l4.61-.67L11.1 3.56A1 1 0 0 1 12 3Z"
                       />
                     </svg>
                   </span>
