@@ -20,13 +20,15 @@
 
 html,
 body {
-  min-height: 100%;
+  height: 100%;
   background: var(--bg);
+  overflow: hidden;
 }
 
 body {
   font-family: "Montserrat", sans-serif;
   color: var(--text);
+  overflow: hidden;
 }
 
 button {
@@ -35,12 +37,13 @@ button {
 
 .app-shell {
   position: relative;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: clamp(2rem, 6vw, 4rem);
   padding: clamp(0.85rem, 3vw, 1.5rem);
 }
 
@@ -48,8 +51,12 @@ button {
 .background-image,
 .background-overlay,
 .background-glow {
-  position: absolute;
+  position: fixed;
   inset: 0;
+}
+
+.background-stage {
+  z-index: 0;
 }
 
 .background-image {
@@ -150,19 +157,171 @@ button {
   white-space: nowrap;
 }
 
+.status-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.wallpaper-dot {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(217, 249, 157, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    background 180ms ease;
+}
+
+.wallpaper-dot:hover,
+.wallpaper-dot:focus-visible {
+  background: #f6f8f6;
+  transform: scale(1.08);
+}
+
+.wallpaper-dot:focus-visible {
+  outline: 2px solid rgba(246, 248, 246, 0.45);
+  outline-offset: 3px;
+}
+
 .hero-panel {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(1.5rem, 6vw, 4rem) 0;
+  padding: 0;
+}
+
+.message-stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.message-rail {
+  width: min(100%, 62rem);
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2.25rem, 7vw, 4.5rem);
+  padding: 26vh 0;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+}
+
+.message-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.message-card {
+  width: min(100%, 54rem);
+  min-height: clamp(7rem, 18vh, 14rem);
+  padding: clamp(1rem, 3vw, 2rem);
+  border-radius: 1.9rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.8rem;
+  transform-origin: center center;
+  opacity: 0.2;
+  transform: scale(0.52);
+  transition:
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.message-card.is-focused {
+  opacity: 1;
+}
+
+.message-card__eyebrow {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.message-card__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.message-card__countdown {
+  color: rgba(246, 248, 246, 0.72);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.message-card h1,
+.message-card h2,
+.message-card h3 {
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.message-card--tiny {
+  width: min(100%, 28rem);
+}
+
+.message-card--small {
+  width: min(100%, 38rem);
+}
+
+.message-card--large {
+  width: min(100%, 50rem);
+}
+
+.message-card--tiny h3 {
+  font-size: clamp(1.05rem, 3.6vw, 1.7rem);
+}
+
+.message-card--small h2 {
+  font-size: clamp(1.4rem, 4.2vw, 2.5rem);
+}
+
+.message-card--large h1 {
+  font-size: clamp(2rem, 6vw, 4rem);
+}
+
+.message-card--quote {
+  width: min(100%, 58rem);
+  min-height: clamp(12rem, 34vh, 24rem);
 }
 
 .quote-shell {
-  width: min(100%, 54rem);
+  width: 100%;
   padding: clamp(0.6rem, 2vw, 2.25rem);
   border-radius: 1.75rem;
   transition: opacity 400ms ease, transform 400ms ease;
+}
+
+.quote-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: clamp(0.75rem, 2vw, 1rem);
 }
 
 .quote-shell.is-changing {
@@ -174,7 +333,6 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: clamp(0.75rem, 2vw, 1rem);
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
   background: rgba(217, 249, 157, 0.12);
@@ -183,6 +341,14 @@ button {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.quote-countdown {
+  color: rgba(246, 248, 246, 0.72);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
 }
 
 .quote-text {
@@ -212,7 +378,6 @@ button {
 
 @media (max-width: 640px) {
   .app-shell {
-    justify-content: flex-start;
     gap: 1.75rem;
   }
 
@@ -245,10 +410,26 @@ button {
   }
 
   .hero-panel {
-    align-items: flex-start;
-    justify-content: flex-end;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .message-rail {
+    width: 100%;
+    padding-top: 18vh;
+    padding-bottom: 18vh;
+  }
+
+  .message-card {
+    min-height: auto;
+    padding: 1rem;
+  }
+
+  .message-card--tiny,
+  .message-card--small,
+  .message-card--large,
+  .message-card--quote {
+    width: 100%;
   }
 
   .quote-shell {

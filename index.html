@@ -24,15 +24,64 @@
           <p class="date" id="dateText"></p>
         </div>
 
-        <div class="status-pill" id="statusPill">Daily mode</div>
+        <div class="status-tools">
+          <div class="status-pill" id="statusPill">Daily mode</div>
+          <button
+            class="wallpaper-dot"
+            id="wallpaperDot"
+            type="button"
+            aria-label="Change wallpaper"
+            title="Change wallpaper"
+          ></button>
+        </div>
       </header>
 
-      <section class="hero-panel">
-        <div class="quote-shell" id="quoteShell">
-          <p class="category-badge" id="categoryBadge">Loading</p>
-          <blockquote class="quote-text" id="quoteText">Preparing your next quote...</blockquote>
-          <p class="quote-source" id="quoteSource">Loading source</p>
-          <p class="quote-type" id="quoteType"></p>
+      <section class="message-stage" aria-label="Motivation messages">
+        <div class="message-rail" id="messageRail">
+          <article class="message-card message-card--small" data-focus-card>
+            <p class="message-card__eyebrow">Warm up</p>
+            <h2>This one now matches the others when it reaches the center.</h2>
+          </article>
+
+          <article class="message-card message-card--small" data-focus-card>
+            <p class="message-card__eyebrow">Momentum</p>
+            <h2>Only the messages scroll now while the page stays fixed.</h2>
+          </article>
+
+          <article class="message-card message-card--large" data-focus-card>
+            <p class="message-card__eyebrow">Focus</p>
+            <h1>The card nearest the middle takes the spotlight like a watch list.</h1>
+          </article>
+
+          <section class="hero-panel message-card message-card--quote" data-focus-card>
+            <div class="quote-shell" id="quoteShell">
+              <div class="quote-meta">
+                <p class="category-badge" id="categoryBadge">Loading</p>
+                <span class="quote-countdown" id="quoteCountdown">05:00</span>
+              </div>
+              <blockquote class="quote-text" id="quoteText">Preparing your next quote...</blockquote>
+              <p class="quote-source" id="quoteSource">Loading source</p>
+              <p class="quote-type" id="quoteType"></p>
+            </div>
+          </section>
+
+          <article class="message-card message-card--large" data-focus-card>
+            <p class="message-card__eyebrow" id="disciplineEyebrow">Discipline</p>
+            <h1 id="disciplineText">The screen is fixed, but the message stack still glides through focus.</h1>
+          </article>
+
+          <article class="message-card message-card--small" data-focus-card>
+            <div class="message-card__meta">
+              <p class="message-card__eyebrow" id="broTalkEyebrow">Bro Talk</p>
+              <span class="message-card__countdown" id="broTalkCountdown">05:00</span>
+            </div>
+            <h2 id="broTalkText">That gives you the effect without making the whole page move.</h2>
+          </article>
+
+          <article class="message-card message-card--tiny" data-focus-card>
+            <p class="message-card__eyebrow">Finish</p>
+            <h3>The last card still expands when it reaches the center zone.</h3>
+          </article>
         </div>
       </section>
     </main>
