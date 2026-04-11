@@ -266,29 +266,36 @@ function getBroTalkSelection(referenceTime = new Date()) {
   return state.broTalkMessages[bucket % state.broTalkMessages.length];
 }
 
+function clip(text, maxWords) {
+  if (!text) return text;
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ") + "…";
+}
+
 function renderStaticCards() {
   const bucket = getTimeBucket();
   const warmQuotes = WARM_UP_DATA.quotes;
   const motQuotes = state.quotes;
 
   if (warmUpTextEl && warmQuotes.length) {
-    warmUpTextEl.textContent = warmQuotes[bucket % warmQuotes.length];
+    warmUpTextEl.textContent = clip(warmQuotes[bucket % warmQuotes.length], 8);
   }
   if (momentumTextEl && motQuotes.length) {
-    momentumTextEl.textContent = motQuotes[(bucket + 17) % motQuotes.length].text;
+    momentumTextEl.textContent = clip(motQuotes[(bucket + 17) % motQuotes.length].text, 8);
   }
   if (focusTextEl && motQuotes.length) {
-    focusTextEl.textContent = motQuotes[(bucket + 37) % motQuotes.length].text;
+    focusTextEl.textContent = clip(motQuotes[(bucket + 37) % motQuotes.length].text, 6);
   }
   if (finishTextEl && warmQuotes.length) {
-    finishTextEl.textContent = warmQuotes[(bucket + 7) % warmQuotes.length];
+    finishTextEl.textContent = clip(warmQuotes[(bucket + 7) % warmQuotes.length], 8);
   }
 }
 
 function applyDisciplineContent() {
   const entry = getBroTalkSelection();
   disciplineEyebrowEl.textContent = "Bro Talk";
-  if (entry) disciplineTextEl.textContent = entry.text || disciplineTextEl.textContent;
+  if (entry) disciplineTextEl.textContent = clip(entry.text, 10) || disciplineTextEl.textContent;
 }
 
 function renderDisciplineMessage(animate = false) {
@@ -316,14 +323,14 @@ function renderBroTalkMessage() {
   }
 
   broTalkEyebrowEl.textContent = broTalkEntry.category || "Bro Talk";
-  broTalkTextEl.textContent = broTalkEntry.text || broTalkTextEl.textContent;
+  broTalkTextEl.textContent = clip(broTalkEntry.text, 10) || broTalkTextEl.textContent;
 }
 
 function renderQuote(quote, image) {
   if (!quote || !image) return;
 
   categoryBadgeEl.textContent = quote.category;
-  quoteTextEl.textContent = `"${quote.text}"`;
+  quoteTextEl.textContent = `"${clip(quote.text, 10)}"`;
   quoteSourceEl.textContent = `— ${quote.source}`;
   quoteTypeEl.textContent = quote.type;
 
