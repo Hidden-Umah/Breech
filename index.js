@@ -15,6 +15,7 @@ const dateTextEl = document.getElementById("dateText");
 const statusPillEl = document.getElementById("statusPill");
 const wallpaperDotEl = document.getElementById("wallpaperDot");
 const sidePanelEl = document.getElementById("sidePanel");
+const sidePanelBgEl = document.getElementById("sidePanelBg");
 const sidePanelCloseEl = document.getElementById("sidePanelClose");
 const categoryBadgeEl = document.getElementById("categoryBadge");
 const quoteCountdownEl = document.getElementById("quoteCountdown");
@@ -615,12 +616,16 @@ function showError() {
 }
 
 let navFocusFrame = null;
+let lastFocusedNavCard = null;
+
 
 function updateFocusedNavCards() {
   if (!navCardEls.length || !navRailEl) return;
 
   const railRect = navRailEl.getBoundingClientRect();
   const viewportCenter = railRect.top + railRect.height / 2;
+  let closestCard = null;
+  let closestDistance = Number.POSITIVE_INFINITY;
 
   navCardEls.forEach((cardEl) => {
     const rect = cardEl.getBoundingClientRect();
@@ -633,7 +638,35 @@ function updateFocusedNavCards() {
 
     cardEl.style.transform = `scale(${scale.toFixed(3)})`;
     cardEl.style.opacity = opacity.toFixed(3);
+
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestCard = cardEl;
+    }
   });
+
+  if (closestCard && closestCard !== lastFocusedNavCard) {
+    lastFocusedNavCard = closestCard;
+    if (sidePanelBgEl) {
+      const navBgMap = {
+        "side-panel__brand": "sidebar/breech.jpg",
+      };
+      const href = closestCard.getAttribute("href") || "";
+      let bgUrl = null;
+      if (href.includes("events"))       bgUrl = "sidebar/event.jpg";
+      else if (href.includes("timer"))   bgUrl = "sidebar/timer.jpg";
+      else if (href.includes("goals"))   bgUrl = "sidebar/goals.jpg";
+      else if (href.includes("achieve")) bgUrl = "sidebar/archievements.jpg";
+      else if (closestCard.classList.contains("side-panel__brand")) bgUrl = "sidebar/breech.jpg";
+
+      if (bgUrl) {
+        sidePanelBgEl.style.backgroundImage = `url("${bgUrl}")`;
+        sidePanelBgEl.classList.add("is-visible");
+      } else {
+        sidePanelBgEl.classList.remove("is-visible");
+      }
+    }
+  }
 }
 
 function requestNavFocusUpdate() {
@@ -665,10 +698,12 @@ function openSidePanel() {
   document.body.style.overflow = "hidden";
 
   setTimeout(() => {
-    const middleEl = navCardEls[Math.floor(navCardEls.length / 2)];
-    if (middleEl && navRailEl) {
-      navRailEl.scrollTop = middleEl.offsetTop - navRailEl.clientHeight / 2 + middleEl.offsetHeight / 2;
+    const brandEl = navRailEl ? navRailEl.querySelector(".side-panel__brand") : null;
+    const targetEl = brandEl || navCardEls[Math.floor(navCardEls.length / 2)];
+    if (targetEl && navRailEl) {
+      navRailEl.scrollTop = targetEl.offsetTop - navRailEl.clientHeight / 2 + targetEl.offsetHeight / 2;
     }
+    lastFocusedNavCard = null;
     updateFocusedNavCards();
   }, 360);
 }
@@ -679,6 +714,8 @@ function closeSidePanel() {
   sidePanelEl.setAttribute("aria-hidden", "true");
   statusPillEl.setAttribute("aria-expanded", "false");
   document.body.style.overflow = "";
+  if (sidePanelBgEl) sidePanelBgEl.classList.remove("is-visible");
+  lastFocusedNavCard = null;
 }
 
 function init() {

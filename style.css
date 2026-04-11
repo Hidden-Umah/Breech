@@ -420,7 +420,24 @@ button {
   pointer-events: all;
 }
 
+.side-panel__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 700ms ease;
+  z-index: 0;
+}
+
+.side-panel__bg.is-visible {
+  opacity: 1;
+}
+
 .side-panel__topbar {
+  position: relative;
+  z-index: 1;
   flex-shrink: 0;
   display: flex;
   justify-content: flex-end;
@@ -453,6 +470,8 @@ button {
 }
 
 .side-panel__rail {
+  position: relative;
+  z-index: 1;
   flex: 1;
   min-height: 0;
   display: flex;
