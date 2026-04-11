@@ -14,6 +14,8 @@ const timePeriodEl = document.getElementById("timePeriod");
 const dateTextEl = document.getElementById("dateText");
 const statusPillEl = document.getElementById("statusPill");
 const wallpaperDotEl = document.getElementById("wallpaperDot");
+const sidePanelEl = document.getElementById("sidePanel");
+const sidePanelCloseEl = document.getElementById("sidePanelClose");
 const categoryBadgeEl = document.getElementById("categoryBadge");
 const quoteCountdownEl = document.getElementById("quoteCountdown");
 const quoteTextEl = document.getElementById("quoteText");
@@ -603,6 +605,22 @@ function showError() {
   quoteTypeEl.textContent = "";
 }
 
+function openSidePanel() {
+  if (!sidePanelEl) return;
+  sidePanelEl.classList.add("is-open");
+  sidePanelEl.setAttribute("aria-hidden", "false");
+  statusPillEl.setAttribute("aria-expanded", "true");
+  document.body.style.overflow = "hidden";
+}
+
+function closeSidePanel() {
+  if (!sidePanelEl) return;
+  sidePanelEl.classList.remove("is-open");
+  sidePanelEl.setAttribute("aria-hidden", "true");
+  statusPillEl.setAttribute("aria-expanded", "false");
+  document.body.style.overflow = "";
+}
+
 function init() {
   updateClock();
   setInterval(updateClock, 1000);
@@ -632,6 +650,26 @@ function init() {
   if (wallpaperDotEl) {
     wallpaperDotEl.addEventListener("click", cycleWallpaperManually);
   }
+
+  if (statusPillEl && sidePanelEl) {
+    statusPillEl.addEventListener("click", openSidePanel);
+  }
+
+  if (sidePanelCloseEl && sidePanelEl) {
+    sidePanelCloseEl.addEventListener("click", closeSidePanel);
+  }
+
+  if (sidePanelEl) {
+    sidePanelEl.addEventListener("click", (e) => {
+      if (e.target === sidePanelEl) closeSidePanel();
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && sidePanelEl && sidePanelEl.classList.contains("is-open")) {
+      closeSidePanel();
+    }
+  });
 }
 
 init();

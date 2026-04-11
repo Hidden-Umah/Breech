@@ -149,12 +149,26 @@ button {
   max-width: 100%;
   padding: 0.7rem 0.95rem;
   border-radius: 999px;
+  background: none;
+  border: none;
   color: var(--accent);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 180ms ease;
+}
+
+.status-pill:hover,
+.status-pill:focus-visible {
+  opacity: 0.75;
+}
+
+.status-pill:focus-visible {
+  outline: 2px solid rgba(217, 249, 157, 0.5);
+  outline-offset: 2px;
 }
 
 .status-tools {
@@ -384,6 +398,56 @@ button {
   color: var(--soft);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* ── Full-screen side panel ──────────────────────────────────── */
+.side-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(3, 8, 6, 0.97);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.side-panel.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.side-panel__close {
+  position: fixed;
+  top: clamp(0.85rem, 3vw, 1.5rem);
+  right: clamp(0.85rem, 3vw, 2rem);
+  width: 2.4rem;
+  height: 2.4rem;
+  background: rgba(246, 248, 246, 0.08);
+  border: 1px solid rgba(246, 248, 246, 0.12);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 180ms ease;
+}
+
+.side-panel__close:hover,
+.side-panel__close:focus-visible {
+  background: rgba(246, 248, 246, 0.16);
+}
+
+.side-panel__close:focus-visible {
+  outline: 2px solid rgba(246, 248, 246, 0.45);
+  outline-offset: 2px;
 }
 
 @media (max-width: 640px) {

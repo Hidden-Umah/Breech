@@ -25,7 +25,14 @@
         </div>
 
         <div class="status-tools">
-          <div class="status-pill" id="statusPill">Daily mode</div>
+          <button
+            class="status-pill"
+            id="statusPill"
+            type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="sidePanel"
+          >Daily mode</button>
           <button
             class="wallpaper-dot"
             id="wallpaperDot"
@@ -35,6 +42,11 @@
           ></button>
         </div>
       </header>
+
+      <!-- Full-screen side panel -->
+      <div class="side-panel" id="sidePanel" aria-hidden="true">
+        <button class="side-panel__close" id="sidePanelClose" type="button" aria-label="Close menu">&#x2715;</button>
+      </div>
 
       <section class="message-stage" aria-label="Motivation messages">
         <div class="message-rail" id="messageRail">
