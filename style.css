@@ -329,6 +329,16 @@ button {
   transform: translateY(10px);
 }
 
+.bro-talk-shell {
+  width: 100%;
+  transition: opacity 400ms ease, transform 400ms ease;
+}
+
+.bro-talk-shell.is-changing {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
 .category-badge {
   display: inline-flex;
   align-items: center;
