@@ -496,12 +496,28 @@ button {
     width: auto;
   }
 
+  .message-card--tiny {
+    width: min(100%, 36rem);
+  }
+
+  .message-card--small {
+    width: min(100%, 52rem);
+  }
+
+  .message-card--large {
+    width: min(100%, 66rem);
+  }
+
+  .message-card--quote {
+    width: min(100%, 72rem);
+  }
+
   .quote-shell {
-    width: min(100%, 60rem);
+    width: min(100%, 68rem);
     padding: 2.25rem 0;
   }
 
   .quote-text {
-    max-width: 20ch;
+    max-width: 22ch;
   }
 }
