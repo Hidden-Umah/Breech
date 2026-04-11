@@ -37,6 +37,8 @@ const focusTextEl = document.getElementById("focusText");
 const finishTextEl = document.getElementById("finishText");
 const messageRailEl = document.getElementById("messageRail");
 const focusCardEls = Array.from(document.querySelectorAll("[data-focus-card]"));
+const navRailEl = document.getElementById("navRail");
+const navCardEls = Array.from(document.querySelectorAll("[data-nav-card]"));
 const nextQuoteButtonEl = document.getElementById("nextQuoteButton");
 const pauseButtonEl = document.getElementById("pauseButton");
 const modeButtonEls = Array.from(document.querySelectorAll("[data-mode]"));
@@ -612,12 +614,63 @@ function showError() {
   quoteTypeEl.textContent = "";
 }
 
+let navFocusFrame = null;
+
+function updateFocusedNavCards() {
+  if (!navCardEls.length || !navRailEl) return;
+
+  const railRect = navRailEl.getBoundingClientRect();
+  const viewportCenter = railRect.top + railRect.height / 2;
+
+  navCardEls.forEach((cardEl) => {
+    const rect = cardEl.getBoundingClientRect();
+    const cardCenter = rect.top + rect.height / 2;
+    const distance = Math.abs(viewportCenter - cardCenter);
+    const normalizedDistance = clamp(distance / (railRect.height * 0.42), 0, 1);
+    const focusStrength = 1 - normalizedDistance;
+    const scale = 0.52 + focusStrength * 0.48;
+    const opacity = 0.2 + focusStrength * 0.8;
+
+    cardEl.style.transform = `scale(${scale.toFixed(3)})`;
+    cardEl.style.opacity = opacity.toFixed(3);
+  });
+}
+
+function requestNavFocusUpdate() {
+  if (navFocusFrame) return;
+  navFocusFrame = window.requestAnimationFrame(() => {
+    navFocusFrame = null;
+    updateFocusedNavCards();
+  });
+}
+
+function setupNavRail() {
+  if (!navCardEls.length || !navRailEl) return;
+
+  navRailEl.addEventListener("scroll", requestNavFocusUpdate, { passive: true });
+  window.addEventListener("resize", requestNavFocusUpdate);
+
+  window.addEventListener("wheel", (event) => {
+    if (!sidePanelEl || !sidePanelEl.classList.contains("is-open")) return;
+    event.preventDefault();
+    navRailEl.scrollBy({ top: event.deltaY, behavior: "smooth" });
+  }, { passive: false });
+}
+
 function openSidePanel() {
   if (!sidePanelEl) return;
   sidePanelEl.classList.add("is-open");
   sidePanelEl.setAttribute("aria-hidden", "false");
   statusPillEl.setAttribute("aria-expanded", "true");
   document.body.style.overflow = "hidden";
+
+  setTimeout(() => {
+    const middleEl = navCardEls[Math.floor(navCardEls.length / 2)];
+    if (middleEl && navRailEl) {
+      navRailEl.scrollTop = middleEl.offsetTop - navRailEl.clientHeight / 2 + middleEl.offsetHeight / 2;
+    }
+    updateFocusedNavCards();
+  }, 360);
 }
 
 function closeSidePanel() {
@@ -632,6 +685,7 @@ function init() {
   updateClock();
   setInterval(updateClock, 1000);
   setupFocusCards();
+  setupNavRail();
   loadData();
   bgCurrentEl.style.backgroundImage = `url("${DEFAULT_BG_URL}")`;
   applyCurrentMode();
